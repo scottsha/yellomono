@@ -125,8 +125,7 @@ function action_generators( board ){
         dirs.forEach( function(dir){
           var at0 = row + dir[0];
           var at1 = row + dir[1];
-          var entat = board[at0][at1];
-          if(0<=at0 && at0<rows && 0<=at1 &&at1<cols&& !(toggles.includes(entat))){
+          if(0<=at0 && at0<rows && 0<=at1 &&at1<cols&& !(toggles.includes(board[at0][at1]))){
             b.subset( math.index(at0,at1), 1);
           }
         });
@@ -139,23 +138,27 @@ function action_generators( board ){
   return toggle_actions;
 }
 
-function random_board( x_dim, y_dim, density=1/7, offset=0, annulus_radius = (0,0), solved=false, modulus=4 ){
+function random_board( x_dim, y_dim, annulus_radius = [0,0], solved=false, density=1/7, offset=-1, modulus=4 ){
   var bd = math.zeros(y_dim, x_dim)._data;
   // Add toggles in random locations
-  const nspec = math.round(x_dim * y_dim * density);
+  const nspec = math.floor(x_dim * y_dim * density);
+  console.log(bd);
+  console.log('Expect to see {0} toggles because thats {1}x{2}x{3}'.format(nspec,y_dim,x_dim,density));
   for (var foo=0; foo<nspec; foo++){
     var a = math.floor(math.random() * x_dim);
     var b = math.floor(math.random() * y_dim);
     var c = math.floor(math.random()* 3);
     bd[b][a] = toggles[c];
   }
+  console.log(bd);
+  // Turn all squares outside the annulus to walls
   if(annulus_radius[0]>0){
     var cx = (x_dim-1)/2;
     var cy = (y_dim-1)/2;
     var r = annulus_radius[0];
     for(var row=0;row<y_dim;row++){
       for(var col=0;col<x_dim; col++){
-        if( (foo-cx)**2 + (bar-cy)**2 <= r**2 ){
+        if( (col-cx)**2 + (row-cy)**2 <= r**2 ){
           bd[row][col] = '-';
         }
       }
@@ -167,7 +170,7 @@ function random_board( x_dim, y_dim, density=1/7, offset=0, annulus_radius = (0,
     var r = annulus_radius[1];
     for(var row=0;row<y_dim;row++){
       for(var col=0;col<x_dim; col++){
-        if( (foo-cx)**2 + (bar-cy)**2 >= r**2 ){
+        if( (col-cx)**2 + (row-cy)**2 >= r**2 ){
           bd[row][col] = '-';
         }
       }
@@ -175,9 +178,13 @@ function random_board( x_dim, y_dim, density=1/7, offset=0, annulus_radius = (0,
   }
   if(!solved){
     var actgen = action_generators( bd );
-    const num_toggles = actgen[0].length;
-    const randsol = math.multiply(math.random([num_toggles, 1]),modulus);
-    const state = math.modulus( math.multiply(actgen, randsol), modulus).reshape([y_dim, x_dim]);
+    const num_toggles = actgen._size[1];
+    const randsol = math.floor( math.multiply(math.random([num_toggles, 1]),modulus) );
+    var state = math.mod( math.multiply(actgen, randsol), modulus).reshape([y_dim, x_dim]);
+    if(offset == -1){
+      offset = math.floor(math.random()*modulus);
+    }
+    state = math.mod( math.add(state, offset), modulus);
     for(var row=0;row<y_dim;row++){
       for(var col=0;col<x_dim; col++){
         const ent = bd[row][col];
@@ -212,17 +219,16 @@ function random_board( x_dim, y_dim, density=1/7, offset=0, annulus_radius = (0,
 
 // });
 
-
 // ( x_dim, y_dim, density=1/7, offset=0, annulus_radius = (0,0), solved=False, modulus=4 )
 
-// var a = random_board( 2, 3);//, density=1/7, offset=0, annulus_radius = (0,0), solved=False, modulus=4 )
+var a = random_board( 6, 6, annulus_radius = [0.5,3]);//, density=1/7, offset=0, annulus_radius = (0,0), solved=False, modulus=4 )
 // console.log(a);
 // a[0,0]=1;
 // console.log(a);
 // a._data[0][2] =2;
 // console.log(a);
 //
-var a=[['+',1,1,'x'],[1,3,2,3],[1,0,'o',3],[2,3,3,3]];
+// var a=[['+',1,1,'x'],[1,3,2,3],[1,0,'o',3],[2,3,3,3]];
 console.log(a);
-var b = action_generators(a);
-console.log(b);
+// var b = action_generators(a);
+// console.log(b);
