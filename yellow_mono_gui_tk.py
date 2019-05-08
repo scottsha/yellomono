@@ -135,7 +135,7 @@ if __name__ == "__main__":
                     ['2', '2', '2', '2', 'o'],
                     ['2', '2', '2', '2', 'x'],
                     ['2', '2', '2', '2', '2']])
-    a = PuzzleBoardGui(canvas_approx_size=1000)
+    a = PuzzleBoardGui(canvas_approx_size=700)
     # a.puzzle.make_random_board(24,24,annulus_radius=(2,12))
-    a.puzzle.make_random_board(5,5,offset=np.random.randint(4))
+    a.puzzle.make_random_board(25,25,annulus_radius=(2,13),offset=np.random.randint(4))
     a.run()

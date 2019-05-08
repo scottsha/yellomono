@@ -284,37 +284,24 @@ class PuzzleBoard:
                 warnings.warn("Unsolved. Solution may not exist. Check board. Solution is only a simplification.",
                               RuntimeWarning)
 
+    def print_instructions(self):
+        print('To solve the puzzle:')
+        for at, act in zip(self.toggles, self.solution):
+            print('Toggle '+self.board[at[0],at[1]]+' at '+str(at)+' do '+str(act))
 
 if __name__ == "__main__":
-    # lil = np.array([['+',0,0,'x'],[0,0,0,0],[0,0,'o',0],[0,0,0,0]])
     lil = np.array([['2', 'o', '2', '2', '2'],
                     ['2', '2', '2', '2', '2'],
                     ['2', '2', '2', '2', 'o'],
-                    ['2', '2', '2', '2', 'x'],
+                    ['2', 'x', '2', '2', 'x'],
                     ['2', '2', '2', '2', '2']])
-    # lil = np.array([['0','o','0','0','0'],
-    #  ['0','0','0','0','0'],
-    #  ['0','0','0','0','o'],
-    #  ['0','0','0','0','x'],
-    #  ['0','0','0','0','0']])
-    # lil = np.array([[3,3,3],[3,'+',3],[3,3,3]])
     puz = PuzzleBoard(board=lil)
+    puz.random_act()
+    # print(puz.board)
     print(puz.board)
-    print()
-    print(puz.toggles)
-    print()
-    print(puz.state)
-    puz.random_act(verbose=True)
-    # print(puz.board)
-    print()
+    print('State of the board:')
     print(puz.state)
     print()
-    print((puz.state - puz.offset()) % puz.modulus)
-    # puz = PuzzleBoard()
-    # puz.make_random_board( 5, 5, offset=2, annulus_radius = (0,4), solved=False)
-    # puz.random_act()
-    # print(puz.board)
-    # print(puz.state)
-    # print(puz.unshakables())
     puz.solve()
-    # print(puz.solution)
+    print(puz.solution)
+    puz.print_instructions()
