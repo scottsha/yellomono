@@ -17,8 +17,6 @@ function gcd(a,b){
   }
 }
 
-
-
 function egcd(a,b){
   if (a==0){
     return [b,0,1];
@@ -28,8 +26,6 @@ function egcd(a,b){
   }
 }
 
-
-
 function mod_inv(a,n){
   var t = egcd(a,n);
   if (t[0]!=1){
@@ -38,8 +34,6 @@ function mod_inv(a,n){
     return t[1] % n;
   }
 }
-
-
 
 function rref_mod( amatrix, modulus){
   const n = modulus;
@@ -58,7 +52,6 @@ function rref_mod( amatrix, modulus){
         for (row=0; row<row_count; row++){
           var ent = aa[row][col];
           if(  gcd(ent,n)==1 && row != pivotsfound ){
-            // console.log(42)
             aa[row] = math.mod( math.add(aa[row], math.multiply(-ent, rower)), n);
           }
         }
@@ -91,7 +84,6 @@ function action_generators( board ){
     for(var col=0;col<cols;col++){
       var ent = board[row][col];
       if (ent=='+'){
-        // console.log('+ entry at {0}{1}'.format(row,col));
         var b = math.zeros(rows, cols);
         var dirs = [[1, 0], [0, 1], [-1, 0], [0, -1]];
         dirs.forEach( function(dir){
@@ -105,7 +97,6 @@ function action_generators( board ){
         });
         toggle_actions.push(b.reshape([vol]));
       }else if(ent == 'x'){
-        // console.log('x entry at {0}{1}'.format(row,col));
         var b = math.zeros(rows, cols);
         var dirs = [[1, 1], [-1, 1], [-1, -1], [1, -1]];
         dirs.forEach( function(dir){
@@ -119,7 +110,6 @@ function action_generators( board ){
         });
         toggle_actions.push(b.reshape([vol]));
       }else if(ent == 'o'){
-        // console.log('o entry at {0}{1}'.format(row,col));
         var b = math.zeros(rows, cols);
         var dirs = [[1,0],[1, 1],[0,1],[-1,1],[-1,0], [-1, -1], [0, -1], [1,-1]];
         dirs.forEach( function(dir){
@@ -142,15 +132,12 @@ function random_board( x_dim, y_dim, annulus_radius = [0,0], solved=false, densi
   var bd = math.zeros(y_dim, x_dim)._data;
   // Add toggles in random locations
   const nspec = math.floor(x_dim * y_dim * density);
-  console.log(bd);
-  console.log('Expect to see {0} toggles because thats {1}x{2}x{3}'.format(nspec,y_dim,x_dim,density));
   for (var foo=0; foo<nspec; foo++){
     var a = math.floor(math.random() * x_dim);
     var b = math.floor(math.random() * y_dim);
     var c = math.floor(math.random()* 3);
     bd[b][a] = toggles[c];
   }
-  console.log(bd);
   // Turn all squares outside the annulus to walls
   if(annulus_radius[0]>0){
     var cx = (x_dim-1)/2;
@@ -197,38 +184,84 @@ function random_board( x_dim, y_dim, annulus_radius = [0,0], solved=false, densi
   return bd
 }
 
-// ents, acts = self.generate_generators()
-// tot_act = np.zeros((x_dim, y_dim))
-// for act in acts:
-// tot_act = (tot_act + np.random.randint(self.modulus)*act)%self.modulus
-// nboard = ( numberify_vec(self.board) + tot_act) % self.modulus
-// nboard = nboard.astype(int).astype(str)
-// for foo in ents.keys():
-// nboard[foo[0],foo[1]] = self.board[foo[0],foo[1]]
-// self.board = nboard
-// self.newboard()
-// class
 
 
+class Puzzleboard {
+  constructor(board = null, modulus = 4){
+    this.board = board;
+    this.modulus = modulus;
+    this.shape = null;
+    this.pluses = null;
+    this.exes = null;
+    this.oos = null;
+    this.toggles = null;
+    this.walls = null;
+    this.state = null;
+    this.solution = null;
+    if( this.board != null){
+      this.read_board();
+    }
+  }
+}
 
-// a=[[1, 0], [0, 1], [-1, 0], [0, -1]]
-
-// a.forEach( function(foo){
-
-//     console.log(foo)
-
-// });
-
-// ( x_dim, y_dim, density=1/7, offset=0, annulus_radius = (0,0), solved=False, modulus=4 )
-
-var a = random_board( 6, 6, annulus_radius = [0.5,3]);//, density=1/7, offset=0, annulus_radius = (0,0), solved=False, modulus=4 )
+Puzzleboard.prototype.read_board = function( symbol_order = null){
+  if(symbol_order!=null){
+    console.log('TODO')
+    // aa = [(symbol_order[foo], foo) for foo in range(len(symbol_order))]\
+    // + [(foo,foo) for foo in specials]
+    // symbol_dict = dict(aa)
+    // symbol_changer = np.vectorize(lambda x: symbol_dict[x])
+    // board = symbol_changer(self.board)
+  } else {
+    board = this.board;
+  }
+  const rows =board.length;
+  const cols = board[0].length;
+  this.shape = [ rows, cols];
+  var pluses = [];
+  var oos = [];
+  var exes = [];
+  var walls = [];
+  var special_count = 0;
+  for (var row=0; row<rows; row++){
+    for(var col=0; col<cols; col++){
+      const ent = board[row][col];
+      if( ent == '+' ){
+        pluses.push([row,col]);
+        special_count++;
+      } else if( ent == 'o' ){
+        oos.push([row,col]);
+        special_count++;
+      } else if( ent == 'x' ){
+        exes.push([row,col]);
+        special_count++;
+      } else if( ent == '-' ){
+        walls.push([row,col]);
+      }
+    }
+  }
+  this.pluses = pluses;
+  this.exes = exes;
+  this.oos = oos;
+  this.toggles = oos+pluses+exes;
+  this.walls = walls;
+  this.state = board.map( x => x.map(numberify) );
+}
+// var a = random_board( 6, 6, annulus_radius = [0.5,3]);//, density=1/7, offset=0, annulus_radius = (0,0), solved=False, modulus=4 )
 // console.log(a);
 // a[0,0]=1;
 // console.log(a);
 // a._data[0][2] =2;
 // console.log(a);
 //
-// var a=[['+',1,1,'x'],[1,3,2,3],[1,0,'o',3],[2,3,3,3]];
-console.log(a);
+var a=[['+',1,1,'x'],[1,3,2,3],[1,0,'o',3],[2,3,3,3]];
+puz = new Puzzleboard(a);
+console.log(puz.modulus);
+console.log(puz.shape);
+console.log(puz.board);
+console.log(puz.state);
+// console.log(puz.modulus);
+// console.log();
+// console.log(a);
 // var b = action_generators(a);
 // console.log(b);
