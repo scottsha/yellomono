@@ -188,9 +188,11 @@ function random_board( x_dim, y_dim, annulus_radius = [0,0], solved=false, densi
 
 class Puzzleboard {
   constructor(board = null, modulus = 4){
+    // var that = this;
     this.board = board;
     this.modulus = modulus;
     this.shape = null;
+    this.volume = null;
     this.pluses = null;
     this.exes = null;
     this.oos = null;
@@ -198,6 +200,7 @@ class Puzzleboard {
     this.walls = null;
     this.state = null;
     this.solution = null;
+    this.action_matrix = null;
     if( this.board != null){
       this.read_board();
     }
@@ -222,19 +225,15 @@ Puzzleboard.prototype.read_board = function( symbol_order = null){
   var oos = [];
   var exes = [];
   var walls = [];
-  var special_count = 0;
   for (var row=0; row<rows; row++){
     for(var col=0; col<cols; col++){
       const ent = board[row][col];
       if( ent == '+' ){
         pluses.push([row,col]);
-        special_count++;
       } else if( ent == 'o' ){
         oos.push([row,col]);
-        special_count++;
       } else if( ent == 'x' ){
         exes.push([row,col]);
-        special_count++;
       } else if( ent == '-' ){
         walls.push([row,col]);
       }
@@ -243,10 +242,74 @@ Puzzleboard.prototype.read_board = function( symbol_order = null){
   this.pluses = pluses;
   this.exes = exes;
   this.oos = oos;
-  this.toggles = oos+pluses+exes;
+  this.toggles = oos.concat(pluses.concat(exes));
   this.walls = walls;
   this.state = board.map( x => x.map(numberify) );
+  this.volume = rows * cols;
 }
+
+Puzzleboard.prototype.action_effects = function( row, col){
+  const bd = this.board;
+  const ent = bd[row][col];
+  const rows = this.shape[0];
+  const cols = this.shape[1];
+  var acton = [];
+  if (ent=='+'){
+    var dirs = [[1, 0], [0, 1], [-1, 0], [0, -1]];
+    dirs.forEach( function(dir){
+      var at0 = row + dir[0];
+      var at1 = row + dir[1];
+      while(0<=at0 && at0<rows && 0<=at1 &&at1<cols&& !(toggles.includes(board[at0][at1]))){
+        acton.push([at0,at1]);
+        at0 = at0 + dir[0];
+        at1 = at1 + dir[1];
+      }
+    });
+  }else if(ent == 'x'){
+    var dirs = [[1, 1], [-1, 1], [-1, -1], [1, -1]];
+    dirs.forEach( function(dir){
+      var at0 = row + dir[0];
+      var at1 = row + dir[1];
+      while(0<=at0 && at0<rows && 0<=at1 &&at1<cols&& !(toggles.includes( board[at0][at1]))){
+        acton.push([at0,at1]);
+        at0 = at0 + dir[0];
+        at1 = at1 + dir[1];
+      }
+    });
+  }else if(ent == 'o'){
+    var dirs = [[1,0],[1, 1],[0,1],[-1,1],[-1,0], [-1, -1], [0, -1], [1,-1]];
+    dirs.forEach( function(dir){
+      var at0 = row + dir[0];
+      var at1 = row + dir[1];
+      if(0<=at0 && at0<rows && 0<=at1 &&at1<cols&& !(toggles.includes(board[at0][at1]))){
+        acton.push([at0,at1]);
+      }
+    });
+  }
+  return acton;
+}
+
+Puzzleboard.prototype.make_action_matrix = function(){
+  const rows = this.shape[0];
+  const cols = this.shape[1];
+  const volume = this.volume;
+  togs = this.toggles;
+  var tognum = 0;
+  var mat = math.zeros( this.volume, togs.length);
+  togs.forEach( function(tog){
+    var b = math.zeros(rows, cols);
+    const acton = this.action_effects(tog[0],tog[1]);
+    acton.forEach( function(actor){
+      b.subset( math.index(actor[0],actor[1]), 1);
+    });
+    b.reshape([volume,1]);
+    mat.subset( math.index(math.range(0,volume), tognum), b);
+    tognum++;
+  });
+  this.action_matrix = mat;
+}
+
+
 // var a = random_board( 6, 6, annulus_radius = [0.5,3]);//, density=1/7, offset=0, annulus_radius = (0,0), solved=False, modulus=4 )
 // console.log(a);
 // a[0,0]=1;
@@ -256,12 +319,12 @@ Puzzleboard.prototype.read_board = function( symbol_order = null){
 //
 var a=[['+',1,1,'x'],[1,3,2,3],[1,0,'o',3],[2,3,3,3]];
 puz = new Puzzleboard(a);
-console.log(puz.modulus);
-console.log(puz.shape);
 console.log(puz.board);
-console.log(puz.state);
-// console.log(puz.modulus);
-// console.log();
-// console.log(a);
+puz.make_action_matrix();
+console.log(puz.action_matrix);
+
+// // console.log(puz.modulus);
+// // console.log();
+// // console.log(a);
 // var b = action_generators(a);
 // console.log(b);
