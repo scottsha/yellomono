@@ -63,10 +63,10 @@ function rref_mod( amatrix, modulus){
   return aa;
 }
 
-const toggles = ['o', '+', 'x', '-'];
+const togglesyms = ['o', '+', 'x', '-'];
 
 function numberify(x){
-  if (toggles.includes(x)){
+  if (togglesyms.includes(x)){
     return 0;
   } else {
     return parseInt(x);
@@ -89,7 +89,7 @@ function action_generators( board ){
         dirs.forEach( function(dir){
           var at0 = row + dir[0];
           var at1 = row + dir[1];
-          while(0<=at0 && at0<rows && 0<=at1 &&at1<cols&& !(toggles.includes(board[at0][at1]))){
+          while(0<=at0 && at0<rows && 0<=at1 &&at1<cols&& !(togglesyms.includes(board[at0][at1]))){
             b.subset( math.index(at0,at1), 1);
             at0 = at0 + dir[0];
             at1 = at1 + dir[1];
@@ -102,7 +102,7 @@ function action_generators( board ){
         dirs.forEach( function(dir){
           var at0 = row + dir[0];
           var at1 = row + dir[1];
-          while(0<=at0 && at0<rows && 0<=at1 &&at1<cols&& !(toggles.includes( board[at0][at1]))){
+          while(0<=at0 && at0<rows && 0<=at1 &&at1<cols&& !(togglesyms.includes( board[at0][at1]))){
             b.subset( math.index(at0,at1), 1);
             at0 = at0 + dir[0];
             at1 = at1 + dir[1];
@@ -115,7 +115,7 @@ function action_generators( board ){
         dirs.forEach( function(dir){
           var at0 = row + dir[0];
           var at1 = row + dir[1];
-          if(0<=at0 && at0<rows && 0<=at1 &&at1<cols&& !(toggles.includes(board[at0][at1]))){
+          if(0<=at0 && at0<rows && 0<=at1 &&at1<cols&& !(togglesyms.includes(board[at0][at1]))){
             b.subset( math.index(at0,at1), 1);
           }
         });
@@ -136,7 +136,7 @@ function random_board( x_dim, y_dim, annulus_radius = [0,0], solved=false, densi
     var a = math.floor(math.random() * x_dim);
     var b = math.floor(math.random() * y_dim);
     var c = math.floor(math.random()* 3);
-    bd[b][a] = toggles[c];
+    bd[b][a] = togglesyms[c];
   }
   // Turn all squares outside the annulus to walls
   if(annulus_radius[0]>0){
@@ -175,7 +175,7 @@ function random_board( x_dim, y_dim, annulus_radius = [0,0], solved=false, densi
     for(var row=0;row<y_dim;row++){
       for(var col=0;col<x_dim; col++){
         const ent = bd[row][col];
-        if( !toggles.includes(ent) ){
+        if( !togglesyms.includes(ent) ){
           bd[row][col] = state._data[row][col];
         }
       }
@@ -203,6 +203,7 @@ class Puzzleboard {
     this.action_matrix = null;
     if( this.board != null){
       this.read_board();
+      this.make_action_matrix();
     }
   }
 }
@@ -259,7 +260,7 @@ Puzzleboard.prototype.action_effects = function( row, col){
     dirs.forEach( function(dir){
       var at0 = row + dir[0];
       var at1 = row + dir[1];
-      while(0<=at0 && at0<rows && 0<=at1 &&at1<cols&& !(toggles.includes(board[at0][at1]))){
+      while(0<=at0 && at0<rows && 0<=at1 &&at1<cols&& !(togglesyms.includes(board[at0][at1]))){
         acton.push([at0,at1]);
         at0 = at0 + dir[0];
         at1 = at1 + dir[1];
@@ -270,7 +271,7 @@ Puzzleboard.prototype.action_effects = function( row, col){
     dirs.forEach( function(dir){
       var at0 = row + dir[0];
       var at1 = row + dir[1];
-      while(0<=at0 && at0<rows && 0<=at1 &&at1<cols&& !(toggles.includes( board[at0][at1]))){
+      while(0<=at0 && at0<rows && 0<=at1 &&at1<cols&& !(togglesyms.includes( board[at0][at1]))){
         acton.push([at0,at1]);
         at0 = at0 + dir[0];
         at1 = at1 + dir[1];
@@ -281,7 +282,7 @@ Puzzleboard.prototype.action_effects = function( row, col){
     dirs.forEach( function(dir){
       var at0 = row + dir[0];
       var at1 = row + dir[1];
-      if(0<=at0 && at0<rows && 0<=at1 &&at1<cols&& !(toggles.includes(board[at0][at1]))){
+      if(0<=at0 && at0<rows && 0<=at1 &&at1<cols&& !(togglesyms.includes(board[at0][at1]))){
         acton.push([at0,at1]);
       }
     });
@@ -296,9 +297,10 @@ Puzzleboard.prototype.make_action_matrix = function(){
   togs = this.toggles;
   var tognum = 0;
   var mat = math.zeros( this.volume, togs.length);
+  var self = this;
   togs.forEach( function(tog){
     var b = math.zeros(rows, cols);
-    const acton = this.action_effects(tog[0],tog[1]);
+    const acton = self.action_effects(tog[0],tog[1]);
     acton.forEach( function(actor){
       b.subset( math.index(actor[0],actor[1]), 1);
     });
@@ -306,25 +308,129 @@ Puzzleboard.prototype.make_action_matrix = function(){
     mat.subset( math.index(math.range(0,volume), tognum), b);
     tognum++;
   });
+  // console.log(mat)
   this.action_matrix = mat;
 }
 
+Puzzleboard.prototype.toggle_act = function(row, col, effects=null){
+  if(effects==null){
+    effects = this.action_effects(row,col);
+  };
+  s = this.state;
+  modulus = this.modulus;
+  effects.forEach(function(actor){
+    ent = s[actor[0]][actor[1]];
+    ent2 = (ent+1) % modulus; 
+    s[actor[0]][actor[1]]= ent2;
+  });
+}
 
-// var a = random_board( 6, 6, annulus_radius = [0.5,3]);//, density=1/7, offset=0, annulus_radius = (0,0), solved=False, modulus=4 )
-// console.log(a);
-// a[0,0]=1;
-// console.log(a);
-// a._data[0][2] =2;
-// console.log(a);
-//
-var a=[['+',1,1,'x'],[1,3,2,3],[1,0,'o',3],[2,3,3,3]];
+Puzzleboard.prototype.new_random_board = function( x_dim, y_dim, annulus_radius = [0,0], solved=false, density=1/7, offset=-1, modulus=4 ){
+  bd = random_board(x_dim, y_dim, annulus_radius, solved, density, offset, modulus);
+  this.board = bd;
+  this.read_board();
+}
+
+Puzzleboard.prototype.random_toggle = function(offset = -1){
+  rows = this.shape[0];
+  cols = this.shape[1];
+  modulus = this.modulus;
+  actgen = this.action_matrix;
+  bd = this.board;
+  const num_toggles = actgen._size[1];
+  const randsol = math.floor( math.multiply(math.random([num_toggles, 1]),modulus) );
+  var state = math.mod( math.multiply(actgen, randsol), modulus).reshape([rows, cols]);
+  if(offset == -1){
+    offset = math.floor(math.random()*modulus);
+  }
+  state = math.mod( math.add(state, offset), modulus);
+  for(var row=0;row<rows;row++){
+    for(var col=0;col<cols; col++){
+      const ent = bd[row][col];
+      if( !togglesyms.includes(ent) ){
+        bd[row][col] = state._data[row][col];
+      }
+    }
+  }
+  this.state = state._data;
+}
+
+Puzzleboard.prototype.offset = function(){
+  mat = this.action_matrix;
+  rows = this.shape[0];
+  cols = this.shape[1];
+  tognum = this.toggles.length;
+  bd = this.board;
+  state = this.state;
+  const colsummer = math.ones(tognum, 1);
+  var colsum = math.multiply(mat, colsummer);
+  colsum.reshape([rows,cols]);
+  var unshakable = [];
+  var offset = math.zeros(rows, cols);
+  for(var row=0;row<rows;row++){
+    for(var col=0;col<cols;col++){
+      ent = bd[row][col];
+      hits = colsum._data[row][col]; 
+      if (!togglesyms.includes(ent)){
+        offset._data[row][col] = 1;
+        if(hits==0){
+          unshakable.push(state[row][col]);
+        }
+      }
+    }  
+  }
+  cantshake = new Set(unshakable);
+  if( cantshake.size > 1){
+    console.warn("Unsolvable! Multiple values occur outside of the toggle affectable area.");
+    return offset;
+  } else if (cantshake.size == 0){
+   return offset; 
+  } else {
+    offset = math.multiply(unshakable[0], offset);
+    return offset._data;
+  }
+}
+
+Puzzleboard.prototype.solve = function(){
+  if (this.board == null){
+    this.solution = null;
+  } else {
+    vol = this.volume;
+    offset = this.offset();
+    mat = this.action_matrix;
+    modulus = this.modulus;
+    num_toggles = this.toggles.length;
+    state = this.state;
+    state_offset = math.mod(math.subtract(state, offset), modulus);
+    state_vec = math.reshape(state_offset, [vol, 1]);
+    aa = math.concat(mat,state_vec);
+    bb = rref_mod(aa._data, modulus);
+    refsol = math.subset(bb, math.index(math.range(0,num_toggles), num_toggles));
+    sol = math.mod( math.multiply(refsol, -1), modulus);
+    this.solution = math.reshape(sol, [sol.length]);
+    act = math.reshape(math.multiply(mat,sol),[vol]);
+    statewas = math.reshape(state,[vol]);
+    residue = math.mod( math.add(act, statewas), modulus);
+    solworked = math.equal(residue, math.reshape(offset,[vol]));
+    if(!solworked._data.every(function(x){return x})){
+      console.warm("Unsolved. Solution may not exist. Check board. Solution is only a simplification.");
+    }
+  }
+}
+
+var a=[['+',2,2,'x'],[2,0,0,0],[2,0,'o',0],[2,0,0,0]];
 puz = new Puzzleboard(a);
+puz.solve();
+console.log(puz.offset());
 console.log(puz.board);
-puz.make_action_matrix();
-console.log(puz.action_matrix);
-
-// // console.log(puz.modulus);
-// // console.log();
-// // console.log(a);
-// var b = action_generators(a);
-// console.log(b);
+console.log(puz.toggles);
+console.log(puz.solution);
+// console.log(puz.state);
+// console.log(puz.offset());
+// console.log(puz.state);
+// console.log(puz.offset());
+// console.log();
+// puz.random_toggle();
+// console.log(puz.state);
+// console.log(puz.offset());
+// console.log(puz.action_matrix);
