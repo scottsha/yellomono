@@ -1,29 +1,5 @@
-/**
- * math.js
- * https://github.com/josdejong/mathjs
- *
- * Math.js is an extensive math library for JavaScript and Node.js,
- * It features real and complex numbers, units, matrices, a large set of
- * mathematical functions, and a flexible expression parser.
- *
- * @version 5.10.0
- * @date    2019-05-08
- *
- * @license
- * Copyright (C) 2013-2019 Jos de Jong <wjosdejong@gmail.com>
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy
- * of the License at
- *
- * https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
- */
+//Require math to run in node
+// const math = require('mathjs')
 
 String.prototype.format = function() {
   var formatted = this;
@@ -113,7 +89,7 @@ function action_generators( board ){
         var dirs = [[1, 0], [0, 1], [-1, 0], [0, -1]];
         dirs.forEach( function(dir){
           var at0 = row + dir[0];
-          var at1 = row + dir[1];
+          var at1 = col + dir[1];
           while(0<=at0 && at0<rows && 0<=at1 &&at1<cols&& !(togglesyms.includes(board[at0][at1]))){
             b.subset( math.index(at0,at1), 1);
             at0 = at0 + dir[0];
@@ -126,7 +102,7 @@ function action_generators( board ){
         var dirs = [[1, 1], [-1, 1], [-1, -1], [1, -1]];
         dirs.forEach( function(dir){
           var at0 = row + dir[0];
-          var at1 = row + dir[1];
+          var at1 = col + dir[1];
           while(0<=at0 && at0<rows && 0<=at1 &&at1<cols&& !(togglesyms.includes( board[at0][at1]))){
             b.subset( math.index(at0,at1), 1);
             at0 = at0 + dir[0];
@@ -139,7 +115,7 @@ function action_generators( board ){
         var dirs = [[1,0],[1, 1],[0,1],[-1,1],[-1,0], [-1, -1], [0, -1], [1,-1]];
         dirs.forEach( function(dir){
           var at0 = row + dir[0];
-          var at1 = row + dir[1];
+          var at1 = col + dir[1];
           if(0<=at0 && at0<rows && 0<=at1 &&at1<cols&& !(togglesyms.includes(board[at0][at1]))){
             b.subset( math.index(at0,at1), 1);
           }
@@ -284,7 +260,7 @@ Puzzleboard.prototype.action_effects = function( row, col){
     var dirs = [[1, 0], [0, 1], [-1, 0], [0, -1]];
     dirs.forEach( function(dir){
       var at0 = row + dir[0];
-      var at1 = row + dir[1];
+      var at1 = col + dir[1];
       while(0<=at0 && at0<rows && 0<=at1 &&at1<cols&& !(togglesyms.includes(board[at0][at1]))){
         acton.push([at0,at1]);
         at0 = at0 + dir[0];
@@ -295,7 +271,7 @@ Puzzleboard.prototype.action_effects = function( row, col){
     var dirs = [[1, 1], [-1, 1], [-1, -1], [1, -1]];
     dirs.forEach( function(dir){
       var at0 = row + dir[0];
-      var at1 = row + dir[1];
+      var at1 = col + dir[1];
       while(0<=at0 && at0<rows && 0<=at1 &&at1<cols&& !(togglesyms.includes( board[at0][at1]))){
         acton.push([at0,at1]);
         at0 = at0 + dir[0];
@@ -306,7 +282,7 @@ Puzzleboard.prototype.action_effects = function( row, col){
     var dirs = [[1,0],[1, 1],[0,1],[-1,1],[-1,0], [-1, -1], [0, -1], [1,-1]];
     dirs.forEach( function(dir){
       var at0 = row + dir[0];
-      var at1 = row + dir[1];
+      var at1 = col + dir[1];
       if(0<=at0 && at0<rows && 0<=at1 &&at1<cols&& !(togglesyms.includes(board[at0][at1]))){
         acton.push([at0,at1]);
       }
@@ -443,9 +419,25 @@ Puzzleboard.prototype.solve = function(){
   }
 }
 
+Puzzleboard.prototype.generator_act = function( row, col, effects = null){
+  if (effects == null){
+    effects = this.action_effects(row,col);
+  }
+  var self = this;
+  effects.forEach(function(acton){
+    was = (self.state[acton[0]][acton[1]] + 1) % self.modulus;
+    self.state[acton[0]][acton[1]] = was;
+  });
+}
+
+//Example Usage
 // var a=[['+',2,2,'x'],[2,0,0,0],[2,0,'o',0],[2,0,0,0]];
-// console.log(a);
+// // console.log(a);
 // puz = new Puzzleboard(a);
+// console.log(puz.state);
+// puz.generator_act(0,3);
+// console.log(puz.action_effects(0,3));
+// console.log(puz.state);
 // puz.solve();
 // console.log(puz.offset());
 // console.log(puz.board);
