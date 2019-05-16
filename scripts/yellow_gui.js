@@ -1,11 +1,19 @@
-htmlCanvas = document.getElementById('c'),
+var htmlCanvas = document.getElementById('c');
+var buttonrandboard = document.getElementById('randomboardbutton');
+var inputmodulus = document.getElementById('colorsinput');
+var inputrows = document.getElementById('rowsinput');
+var inputcols = document.getElementById('colsinput');
+var inputdensity = document.getElementById('densityinput');
+var inputinrad = document.getElementById('inradinput');
+var inputoutrad = document.getElementById('outradinput');
+
 //graphics context for drawing.
-ctx = htmlCanvas.getContext('2d');
-outlinecolor = '#81726A';
-spacecolor = '#5C6D6A'//'#50514F'; //'#5C6D6A'
-whitecolor = '#F4E5D4';
-// palette = 50514F 
-basepalette = ['#AFD0D6', '#E1D89F', '#C49799', '#B6C4A2', '#697593','#68575C','#EFA48F','#ABA7BC','#9E8D78'];
+var ctx = htmlCanvas.getContext('2d');
+var outlinecolor = '#81726A';
+var spacecolor = '#5C6D6A'//'#50514F'; //'#5C6D6A'
+var whitecolor = '#F4E5D4';
+// palette = 50514F
+var basepalette = ['#AFD0D6', '#E1D89F', '#C49799', '#B6C4A2', '#697593','#68575C','#EFA48F','#ABA7BC','#9E8D78'];
 // basepalette = [ '#247BA0',  '#FFE066', '#F25F5C', '#70C1B3'];
 
 
@@ -182,22 +190,31 @@ aa = [[0,0,0,0,0,0],[0,0,'x',0,0,0],[0,0,0,'+',0,0],[0,0,0,0,0,'o'],[0,0,0,0,0,0
 puz = new Puzzleboardgui(aa);
 
 function initialize() {
-    // Register an event listener to call the resizeCanvas() function 
-    // each time the window is resized.
     window.addEventListener('resize', resizeCanvas, false);
-    htmlCanvas.addEventListener('click', e => puz.repaint(e));
+    htmlCanvas.addEventListener('click', e => puz.repaint(e), false);
+    buttonrandboard.addEventListener('click', randomBoardClick, false);
+    // buttonrandomboard.addEventListener('click', function(){console.log(424242)}, false);
     resizeCanvas();
 }
 
-// Runs each time the DOM window resize event fires.
-// Resets the canvas dimensions to match window,
-// then draws the new borders accordingly.
 function resizeCanvas() {
     htmlCanvas.width = window.innerWidth;
     htmlCanvas.height = window.innerHeight;
     puz.resize(htmlCanvas.width, htmlCanvas.height);
     puz.paint_board();
-    // puz.paint_brick(0,0)
+}
+
+function randomBoardClick() {
+  puz.new_random_board( x_dim = parseInt(inputcols.value,10),
+    y_dim = parseInt(inputrows.value,10),
+    annulus_radius = [parseInt(inputinrad.value,10), parseInt(inputoutrad.value,10)],
+    solved = false,
+    density = parseFloat(inputdensity.value),
+    offset = -1,
+    modulus = parseInt(inputmodulus.value,10)
+  );
+  resizeCanvas();
+    // , y_dim, annulus_radius = [0,0], solved=false, density=1/7, offset=-1, modulus=4 )
 }
 
 // Listen and Draw
