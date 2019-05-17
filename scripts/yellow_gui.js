@@ -151,11 +151,12 @@ Puzzleboardgui.prototype.repaint = function(event){
     oy = self.origy;
     rows = self.shape[0];
     cols = self.shape[1];
-    atx = event.clientX;
-    aty = event.clientY;
+    atx = event.clientX - htmlCanvas.getBoundingClientRect().left;
+    aty = event.clientY - htmlCanvas.getBoundingClientRect().top;
     bd = self.board
-    col = Math.floor((atx-ox)/bb);
-    row = Math.floor((aty-oy)/bb);
+    col = Math.floor( (atx-ox) / bb );
+    row = Math.floor(( aty-oy) / bb );
+    console.log("origin: {0}, {1} clicked {2}, {3} hit {4}, {5} brick {6}".format(ox,oy,atx,aty,col,row,bb));
     inxrange = (0<=col)&&(col<=cols);
     inyrange = (0<=row)&&(row<=rows);
     if(inxrange&&inyrange){
@@ -181,8 +182,8 @@ Puzzleboardgui.prototype.resize = function(canvasx, canvasy){
     const brickx = Math.floor( htmlCanvas.width / cols);
     const bricky = Math.floor( htmlCanvas.height / rows);
     this.bricksize = Math.min( brickx, bricky);
-    this.origx = (canvasx - cols * this.bricksize)/2;
-    this.origy = (canvasy - rows * this.bricksize)/2;
+    this.origx = Math.floor((canvasx - cols * this.bricksize)/2);
+    this.origy = Math.floor((canvasy - rows * this.bricksize)/2);
     var self = this;
 }
 
