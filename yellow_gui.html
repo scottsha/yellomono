@@ -33,42 +33,44 @@
       <button type="button" id="solvebutton">Show Solution</button>
     </p>
     <p>
-      <button type="button" id="randomboardbutton">Randomize Board</button>
+      <button type="button" id="randomboardbutton">New Random Board</button>
     </p>
 
     <p>
       Colors
       <input type="text" name="enter" class="enter" value="4" id="colorsinput"></input>
       Rows
-      <input type="text" name="enter" class="enter" value="30" id="rowsinput"></input>
+      <input type="text" name="enter" class="enter" value="20" id="rowsinput"></input>
       Columns
-      <input type="text" name="enter" class="enter" value="30" id="colsinput"></input>
+      <input type="text" name="enter" class="enter" value="20" id="colsinput"></input>
     </p>
 
     <p>
       Density
       <input type="text" name="enter" class="enter" value="0.143" id="densityinput"></input>
       Inner Radius
-      <input type="text" name="enter" class="enter" value="2" id="inradinput"></input>
+      <input type="text" name="enter" class="enter" value="0" id="inradinput"></input>
       Outer Radius
-      <input type="text" name="enter" class="enter" value="16" id="outradinput"></input>
+      <input type="text" name="enter" class="enter" value="12" id="outradinput"></input>
     </p>
 
     <p>
-      <button type="button" id="input_board_button">Read In Board</button>
+      <button type="button" id="boardbuttoninput">Read In Board</button>
     </p>
     <p>
-        Input Board. Use +,x, and o for toggles, - for a blank square,
+        Input Board. Use +, x, and o for toggles, - for a blank square,
         and then any symbols for the colors.
-        The cycle order for the symbols must be specified below
+        Input board must have all rows the same length.
     </p>
     <p>
       Color symbols in cyclic order
-      <input type="text" name="enter" class="enter" value="b,y,r,g" id="colorsinput"></input>
+      <input type="text" name="enter" class="enter" value="byrg" id="colororderinput"></input>
     </p>
     <p>
-      <textarea rows="10" cols="60" id="boardinput">
-      </textarea>
+<textarea rows="10" cols="20" id="boardinput">
+rr+b
+ogyb
+xyy-</textarea>
     </p>
   </div>
 

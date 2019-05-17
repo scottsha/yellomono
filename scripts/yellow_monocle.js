@@ -210,8 +210,10 @@ class Puzzleboard {
 }
 
 Puzzleboard.prototype.read_board = function( symbol_order = null){
+  this.solution = null;
+  this.action_matrix = null;
   if(symbol_order!=null){
-    console.log('TODO')
+    // console.log('TODO')
     // aa = [(symbol_order[foo], foo) for foo in range(len(symbol_order))]\
     // + [(foo,foo) for foo in specials]
     // symbol_dict = dict(aa)
@@ -430,6 +432,30 @@ Puzzleboard.prototype.generator_act = function( row, col, effects = null){
   });
 }
 
+Puzzleboard.prototype.string_read_board = function( board_string, symbol_order){
+  var bd;
+  var sym;
+  if (board_string.includes(',')){
+    sym = symbol_order.split(',');
+    bd = board_string.split('\n').map( x=>x.split(','));
+  } else {
+    sym = symbol_order.split('');
+    bd = board_string.split('\n').map( x=>x.split(''));
+  }
+  this.modulus = sym.length;
+  var dict = {};
+  for(var foo = 0; foo<sym.length; foo++){
+    dict[ sym[foo] ] = foo;
+  }
+  for(var foo = 0; foo<togglesyms.length; foo++){
+    dict[ togglesyms[foo] ] = togglesyms[foo];
+  }
+  var bd2 = bd.map(x=>x.map(x=>dict[x]))
+  this.board = bd2;
+  this.read_board();
+  this.make_action_matrix();
+}
+
 //Example Usage
 // var a=[['+',2,2,'x'],[2,0,0,0],[2,0,'o',0],[2,0,0,0]];
 // // console.log(a);
@@ -452,3 +478,7 @@ Puzzleboard.prototype.generator_act = function( row, col, effects = null){
 // // console.log(puz.state);
 // // console.log(puz.offset());
 // // console.log(puz.action_matrix);
+
+// p = new Puzzleboard;
+// p.string_read_board('b+\nqw\nww','wqb');
+// console.log(p.board);

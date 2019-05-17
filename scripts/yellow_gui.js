@@ -6,6 +6,9 @@ var inputcols = document.getElementById('colsinput');
 var inputdensity = document.getElementById('densityinput');
 var inputinrad = document.getElementById('inradinput');
 var inputoutrad = document.getElementById('outradinput');
+var inputboard = document.getElementById('boardinput');
+var buttonreadboard = document.getElementById('boardbuttoninput');
+var inputcolororder = document.getElementById('colororderinput');
 
 //graphics context for drawing.
 var ctx = htmlCanvas.getContext('2d');
@@ -156,7 +159,7 @@ Puzzleboardgui.prototype.repaint = function(event){
     bd = self.board
     col = Math.floor( (atx-ox) / bb );
     row = Math.floor(( aty-oy) / bb );
-    console.log("origin: {0}, {1} clicked {2}, {3} hit {4}, {5} brick {6}".format(ox,oy,atx,aty,col,row,bb));
+    // console.log("origin: {0}, {1} clicked {2}, {3} hit {4}, {5} brick {6}".format(ox,oy,atx,aty,col,row,bb));
     inxrange = (0<=col)&&(col<=cols);
     inyrange = (0<=row)&&(row<=rows);
     if(inxrange&&inyrange){
@@ -194,6 +197,7 @@ function initialize() {
     window.addEventListener('resize', resizeCanvas, false);
     htmlCanvas.addEventListener('click', e => puz.repaint(e), false);
     buttonrandboard.addEventListener('click', randomBoardClick, false);
+    buttonreadboard.addEventListener('click', readBoardButton, false);
     // buttonrandomboard.addEventListener('click', function(){console.log(424242)}, false);
     resizeCanvas();
 }
@@ -215,7 +219,13 @@ function randomBoardClick() {
     modulus = parseInt(inputmodulus.value,10)
   );
   resizeCanvas();
-    // , y_dim, annulus_radius = [0,0], solved=false, density=1/7, offset=-1, modulus=4 )
+}
+
+function readBoardButton(){
+    var rawboardstr = inputboard.value;
+    var colororderstr = inputcolororder.value;
+    puz.string_read_board(rawboardstr, colororderstr);
+    resizeCanvas();
 }
 
 // Listen and Draw
