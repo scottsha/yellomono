@@ -9,9 +9,12 @@ var inputoutrad = document.getElementById('outradinput');
 var inputboard = document.getElementById('boardinput');
 var buttonreadboard = document.getElementById('boardbuttoninput');
 var inputcolororder = document.getElementById('colororderinput');
+var buttontoggle = document.getElementById('togglebutton');
+var buttonsolve = document.getElementById('solvebutton');
 
 //graphics context for drawing.
 var ctx = htmlCanvas.getContext('2d');
+// ctx.lineWidth = 1;
 var outlinecolor = '#81726A';
 var spacecolor = '#5C6D6A'//'#50514F'; //'#5C6D6A'
 var whitecolor = '#F4E5D4';
@@ -34,7 +37,7 @@ class Puzzleboardgui extends Puzzleboard {
     constructor(board = null, modulus = 4, bricksize = null) {
         super(board, modulus);
         this.bricksize = bricksize;
-        this.strokesize = null;
+        this.strokesize = 1;
         this.origx = null;
         this.origy = null;
         this.palette = basepalette;
@@ -147,7 +150,7 @@ Puzzleboardgui.prototype.paint_board = function(){
     }
 }
 
-Puzzleboardgui.prototype.repaint = function(event){
+Puzzleboardgui.prototype.toggling_repaint = function(event){
     var self = this;
     bb = this.bricksize;
     ox = self.origx;
@@ -190,16 +193,40 @@ Puzzleboardgui.prototype.resize = function(canvasx, canvasy){
     var self = this;
 }
 
-aa = [[0,0,0,0,0,0],[0,0,'x',0,0,0],[0,0,0,'+',0,0],[0,0,0,0,0,'o'],[0,0,0,0,0,0]];
+Puzzleboardgui.prototype.solution_show = function(){
+    this.paint_board();
+    this.solve();
+    if (this.solution_warning){
+        window.alert('Solution may not exist. Check the board.');
+    } 
+    var sol = this.solution;
+    var tog = this.toggles;
+    var bb = this.bricksize;
+    var ox = this.origx;
+    var oy = this.origy;
+    for (var foo=0; foo<sol.length; foo++){
+        var bar = sol[foo];
+        var x = ox + bb*(tog[foo][1]+0.23);
+        var y = oy + bb*(tog[foo][0]+0.78);
+        ctx.fillStyle = '#241023';
+        ctx.font = (0.9*bb).toString()+'px Courier New';
+        ctx.fillText( bar.toString() , x, y);
+    }
+}
+
+// aa = [[0,0,0,0,0,0],[0,0,'x',0,0,0],[0,0,0,'+',0,0],[0,0,0,0,0,'o'],[0,0,0,0,0,0]];
+aa = [[1,1,1],['x',1,'o']];
 puz = new Puzzleboardgui(aa);
 
 function initialize() {
     window.addEventListener('resize', resizeCanvas, false);
-    htmlCanvas.addEventListener('click', e => puz.repaint(e), false);
+    htmlCanvas.addEventListener('click', e => puz.toggling_repaint(e), false);
     buttonrandboard.addEventListener('click', randomBoardClick, false);
     buttonreadboard.addEventListener('click', readBoardButton, false);
+    buttontoggle.addEventListener('click', toggleButtonClick, false);
+    buttonsolve.addEventListener('click',solutionButtonClick,false);
     // buttonrandomboard.addEventListener('click', function(){console.log(424242)}, false);
-    resizeCanvas();
+    // resizeCanvas();
 }
 
 function resizeCanvas() {
@@ -226,6 +253,16 @@ function readBoardButton(){
     var colororderstr = inputcolororder.value;
     puz.string_read_board(rawboardstr, colororderstr);
     resizeCanvas();
+}
+
+function toggleButtonClick(){
+    puz.random_toggle();
+    puz.make_action_matrix();
+    puz.paint_board();
+}
+
+function solutionButtonClick(){
+    puz.solution_show();
 }
 
 // Listen and Draw

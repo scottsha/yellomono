@@ -10,6 +10,8 @@ String.prototype.format = function() {
   return formatted;
 };
 
+const getMax = (numbers) => numbers.reduce((a, b) => Math.max(a, b));
+
 function gcd(a,b){
   if (a==0){
     return b;
@@ -201,6 +203,7 @@ class Puzzleboard {
     this.walls = null;
     this.state = null;
     this.solution = null;
+    this.solution_warning = null;
     this.action_matrix = null;
     if( this.board != null){
       this.read_board();
@@ -211,6 +214,7 @@ class Puzzleboard {
 
 Puzzleboard.prototype.read_board = function( symbol_order = null){
   this.solution = null;
+  this.solution_warning = null;
   this.action_matrix = null;
   if(symbol_order!=null){
     // console.log('TODO')
@@ -339,6 +343,10 @@ Puzzleboard.prototype.random_toggle = function(offset = -1){
   cols = this.shape[1];
   modulus = this.modulus;
   actgen = this.action_matrix;
+  if (actgen==null){
+    this.make_action_matrix();
+    actgen = this.action_matrix;
+  }
   bd = this.board;
   const num_toggles = actgen._size[1];
   const randsol = math.floor( math.multiply(math.random([num_toggles, 1]),modulus) );
@@ -355,11 +363,15 @@ Puzzleboard.prototype.random_toggle = function(offset = -1){
       }
     }
   }
-  this.state = state._data;
+  this.read_board();
 }
 
 Puzzleboard.prototype.offset = function(){
   mat = this.action_matrix;
+  if (mat ==null){
+    this.make_action_matrix();
+    mat = this.action_matrix;
+  }
   rows = this.shape[0];
   cols = this.shape[1];
   tognum = this.toggles.length;
@@ -409,14 +421,20 @@ Puzzleboard.prototype.solve = function(){
     aa = math.concat(mat,state_vec);
     bb = rref_mod(aa._data, modulus);
     refsol = math.subset(bb, math.index(math.range(0,num_toggles), num_toggles));
+    if (num_toggles==1){
+      refsol = [refsol];
+    }
     sol = math.mod( math.multiply(refsol, -1), modulus);
     this.solution = math.reshape(sol, [sol.length]);
     act = math.reshape(math.multiply(mat,sol),[vol]);
     statewas = math.reshape(state,[vol]);
     residue = math.mod( math.add(act, statewas), modulus);
-    solworked = math.equal(residue, math.reshape(offset,[vol]));
-    if(!solworked._data.every(function(x){return x})){
-      console.warm("Unsolved. Solution may not exist. Check board. Solution is only a simplification.");
+    shouldsee = math.reshape(offset,[vol]);
+    errin = getMax(math.abs(math.subtract(residue, shouldsee))._data);
+    // mosterr = 
+    if(errin>0){
+      this.solution_warning=true;
+      console.warn("Solution may not exist. Check board. Solution is only a simplification.");
     }
   }
 }
