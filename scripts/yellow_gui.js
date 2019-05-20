@@ -197,7 +197,8 @@ Puzzleboardgui.prototype.solution_show = function(){
     this.paint_board();
     this.solve();
     if (this.solution_warning){
-        window.alert('Solution may not exist. Check the board.');
+        // window.alert('Solution may not exist. Check the board.');
+        console.log('Solution may not exit.');
     } 
     var sol = this.solution;
     var tog = this.toggles;

@@ -79,7 +79,7 @@ def rref_mod(matrix, modulus):
                 aa[pivotsfound, :] = b
                 for row in range(row_count):
                     a = aa[row, col]
-                    if gcd(a, n) == 1 and row != pivotsfound:
+                    if a!=0 and row != pivotsfound:
                         aa[row, :] = (aa[row, :] - a * b) % n
                 pivotsfound += 1
                 break
@@ -106,6 +106,7 @@ class PuzzleBoard:
         self.state = ()
         self.shape = ()
         self.solution = ()
+        self.nontoggles = ()
         if board is not None:
             self.read_board()
 
@@ -126,21 +127,24 @@ class PuzzleBoard:
         walls = []
         exes = []
         special_count = 0
+        nontoggles = np.zeros(self.shape, dtype=int)
         for foo in range(board.shape[0]):
             for bar in range(board.shape[1]):
-                ent = board[foo][bar]
+                ent = board[foo,bar]
                 if ent == '+':
                     pluses.append((foo, bar))
                     special_count += 1
-                if ent == 'x':
+                elif ent == 'x':
                     exes.append((foo, bar))
                     special_count += 1
-                if ent == 'o':
+                elif ent == 'o':
                     oos.append((foo, bar))
                     special_count += 1
-                if ent == '-':
+                elif ent == '-':
                     walls.append((foo, bar))
                     # special_count += 1
+                else:
+                    nontoggles[foo, bar] = 1
         self.pluses = pluses
         self.exes = exes
         self.oos = oos
@@ -148,6 +152,7 @@ class PuzzleBoard:
         self.toggles = oos + pluses + exes
         self.walls = walls
         self.state = numberify_vec(board)
+        self.nontoggles = nontoggles
 
     def action_effects(self, x, y):
         board = self.board
@@ -270,19 +275,22 @@ class PuzzleBoard:
 
     def solve(self):
         if self.board is None:
-            print('The board is null.')
+            warnings.warn('The board is null.')
         else:
-            offset = self.offset()
+            # offset = self.offset()
             mat = self.action_matrix
-            state_offset = (self.state - offset) % self.modulus
-            state_v = state_offset.reshape((mat.shape[0], 1))
-            aa = np.hstack([mat, state_v])
+            # state_offset = (self.state - offset) % self.modulus
+            state_v = self.state.reshape((mat.shape[0], 1))
+            nontog = self.nontoggles.reshape((mat.shape[0], 1))
+            aa = np.hstack([mat, nontog, state_v])
             bb = rref_mod(aa, self.modulus)
             self.solution = (-bb[0:mat.shape[1], -1]) % self.modulus
+            offset = bb[mat.shape[1], -1]
+            print('offset', offset)
             residue = (self.state.reshape(mat.shape[0]) + mat @ self.solution) % self.modulus
-            if not (residue.reshape(self.shape) == offset).all():
-                warnings.warn("Unsolved. Solution may not exist. Check board. Solution is only a simplification.",
-                              RuntimeWarning)
+            # if not (residue.reshape(self.shape) == offset).all():
+            #     warnings.warn("Unsolved. Solution may not exist. Check board. Solution is only a simplification.",
+            #                   RuntimeWarning)
 
     def print_instructions(self):
         print('To solve the puzzle:')
@@ -290,18 +298,21 @@ class PuzzleBoard:
             print('Toggle '+self.board[at[0],at[1]]+' at '+str(at)+' do '+str(act))
 
 if __name__ == "__main__":
-    lil = np.array([['2', 'o', '2', '2', '2'],
-                    ['2', '2', '2', '2', '2'],
-                    ['2', '2', '2', '2', 'o'],
-                    ['2', 'x', '2', '2', 'x'],
-                    ['2', '2', '2', '2', '2']])
-    puz = PuzzleBoard(board=lil)
-    puz.random_act()
+    # lil = np.array([['2', 'o', '2', '2', '2'],
+    #                 ['2', '2', '2', '2', '2'],
+    #                 ['2', '2', '2', '2', 'o'],
+    #                 ['2', 'x', '2', '2', 'x'],
+    #                 ['2', '2', '2', '2', '2']])
+    # puz = PuzzleBoard(board=lil)
+    puz = PuzzleBoard()
+    puz.make_random_board(7,7,offset=np.random.randint(4))
+    puz.random_act(verbose=True)
     # print(puz.board)
     print(puz.board)
     print('State of the board:')
     print(puz.state)
     print()
     puz.solve()
+    print('Solution')
     print(puz.solution)
     puz.print_instructions()

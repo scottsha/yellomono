@@ -1,5 +1,5 @@
 //Require math to run in node
-// const math = require('mathjs')
+const math = require('mathjs')
 
 String.prototype.format = function() {
   var formatted = this;
@@ -54,7 +54,7 @@ function rref_mod( amatrix, modulus){
         aa[ pivotsfound ] = rower.slice();
         for (row=0; row<row_count; row++){
           var ent = aa[row][col];
-          if(  gcd(ent,n)==1 && row != pivotsfound ){
+          if(row != pivotsfound && ent!=0){
             aa[row] = math.mod( math.add(aa[row], math.multiply(-ent, rower)), n);
           }
         }
@@ -205,6 +205,9 @@ class Puzzleboard {
     this.solution = null;
     this.solution_warning = null;
     this.action_matrix = null;
+    this.nontoggles = null;
+    this.rrefresult = null;
+    this.truetoggle = null;
     if( this.board != null){
       this.read_board();
       this.make_action_matrix();
@@ -233,6 +236,7 @@ Puzzleboard.prototype.read_board = function( symbol_order = null){
   var oos = [];
   var exes = [];
   var walls = [];
+  var nontog = math.zeros( rows, cols);
   for (var row=0; row<rows; row++){
     for(var col=0; col<cols; col++){
       const ent = board[row][col];
@@ -244,9 +248,12 @@ Puzzleboard.prototype.read_board = function( symbol_order = null){
         exes.push([row,col]);
       } else if( ent == '-' ){
         walls.push([row,col]);
+      } else {
+        nontog._data[row][col]=1;
       }
     }
   }
+  this.nontoggles = nontog._data;
   this.pluses = pluses;
   this.exes = exes;
   this.oos = oos;
@@ -350,6 +357,8 @@ Puzzleboard.prototype.random_toggle = function(offset = -1){
   bd = this.board;
   const num_toggles = actgen._size[1];
   const randsol = math.floor( math.multiply(math.random([num_toggles, 1]),modulus) );
+  //!!!! remove this truetoggle
+  this.truetoggle = randsol;
   var state = math.mod( math.multiply(actgen, randsol), modulus).reshape([rows, cols]);
   if(offset == -1){
     offset = math.floor(math.random()*modulus);
@@ -410,28 +419,38 @@ Puzzleboard.prototype.solve = function(){
   if (this.board == null){
     this.solution = null;
   } else {
-    vol = this.volume;
-    offset = this.offset();
-    mat = this.action_matrix;
-    modulus = this.modulus;
-    num_toggles = this.toggles.length;
-    state = this.state;
-    state_offset = math.mod(math.subtract(state, offset), modulus);
-    state_vec = math.reshape(state_offset, [vol, 1]);
-    aa = math.concat(mat,state_vec);
-    bb = rref_mod(aa._data, modulus);
-    refsol = math.subset(bb, math.index(math.range(0,num_toggles), num_toggles));
+    var vol = this.volume;
+    // var offset = this.offset();
+    var mat = this.action_matrix;
+    if (mat == null){
+      this.make_action_matrix();
+      mat = this.action_matrix;
+    }
+    var modulus = this.modulus;
+    var num_toggles = this.toggles.length;
+    var state = this.state;
+    // var state_offset = math.mod(math.subtract(state, offset), modulus);
+    var state_vec = math.reshape(state, [vol, 1]);
+    var nontog = this.nontoggles;
+    var nontog_vec = math.reshape(nontog, [vol, 1]);
+    var aa = math.concat(mat, nontog_vec, state_vec); //nontog_vec, state_vec);
+    var bb = rref_mod(aa._data, modulus);
+    //!!!!remove this rrefresult after testing
+    this.rrefresult = bb;
+    var refsol = math.subset(bb, math.index(math.range(0,num_toggles), num_toggles+1));
+    var offset = bb[num_toggles][num_toggles+1];
     if (num_toggles==1){
       refsol = [refsol];
     }
-    sol = math.mod( math.multiply(refsol, -1), modulus);
+    var sol = math.mod( math.multiply(refsol, -1), modulus);
     this.solution = math.reshape(sol, [sol.length]);
-    act = math.reshape(math.multiply(mat,sol),[vol]);
-    statewas = math.reshape(state,[vol]);
-    residue = math.mod( math.add(act, statewas), modulus);
-    shouldsee = math.reshape(offset,[vol]);
-    errin = getMax(math.abs(math.subtract(residue, shouldsee))._data);
-    // mosterr = 
+    //This rest of this nonsense is just double checking. Could just check rref...
+    var act = math.reshape(math.multiply(mat,sol),[vol,1]);
+    // var statewas = offset * nontog_vec;
+    var residue = math.mod( math.add(act, state_vec), modulus);
+    //!!!!
+    var shouldsee = math.multiply(offset, nontog_vec);
+    var errin = getMax(math.abs(math.subtract(residue, shouldsee))._data);
     if(errin>0){
       this.solution_warning=true;
       console.warn("Solution may not exist. Check board. Solution is only a simplification.");
@@ -474,6 +493,44 @@ Puzzleboard.prototype.string_read_board = function( board_string, symbol_order){
   this.make_action_matrix();
 }
 
+Puzzleboard.prototype.string_write_board = function(symbol_order){
+  var aa = "";
+  var rows = this.shape[0];
+  var cols = this.shape[1];
+  var bd = this.board;
+  var st = this.state;
+  for (var row=0; row<rows; row++){
+    for (var col=0; col<cols; col++){
+      var ent = bd[row][col];
+      if (togglesyms.includes(ent)){
+        aa+=ent;
+      } else {
+        aa+=symbol_order[st[row][col]];
+      }
+    }
+    aa+='\n'
+  }
+  return aa;
+}
+
+stringifymat = function(mat){
+  var aa = "";
+  var rows = mat.length;
+  var cols = mat[0].length;
+  for (var row=0; row<rows; row++){
+    for (var col=0; col<cols; col++){
+      var ent = mat[row][col];
+      if (togglesyms.includes(ent)){
+        aa+=ent;
+      } else {
+        aa+=ent.toString();
+      }
+    }
+    aa+='\n'
+  }
+  return aa;
+}
+
 //Example Usage
 // var a=[['+',2,2,'x'],[2,0,0,0],[2,0,'o',0],[2,0,0,0]];
 // // console.log(a);
@@ -483,20 +540,31 @@ Puzzleboard.prototype.string_read_board = function( board_string, symbol_order){
 // console.log(puz.action_effects(0,3));
 // console.log(puz.state);
 // puz.solve();
-// console.log(puz.offset());
-// console.log(puz.board);
-// console.log(puz.toggles);
-// console.log(puz.solution);
-// // console.log(puz.state);
-// // console.log(puz.offset());
-// // console.log(puz.state);
-// // console.log(puz.offset());
-// // console.log();
-// // puz.random_toggle();
-// // console.log(puz.state);
-// // console.log(puz.offset());
-// // console.log(puz.action_matrix);
 
-// p = new Puzzleboard;
-// p.string_read_board('b+\nqw\nww','wqb');
-// console.log(p.board);
+
+
+
+//----------WHATS GOING WRONG-------------//
+
+// a = "---------wwwwwx+wwwwwww---------\n--------+wwxwwwwwxx+wwww--------\n-------owwwwwwwwwwwwww+ww-------\n------wwwwowwwwowxww+oo+ww------\n-----wwwwwwwwwwxo+wwwowwwww-----\n----wxwwwwww+wwwww+wwwwwwwww----\n---wxxwxwwwwwwxw+wwxwwwwowxw+---\n--+oxxwowwwwwwwwwwwowwwwwwwwww--\n-+xwwwwwwwwwwwwwwwwwwwwww+w+wwx-\n+wwwwwwwwwwww+wwwwwwwwwwwwwwwwww\nwww++owww+wwww+wwwxww+wwwwwwwwww\nwwwwwwwwwww+w------wwwwxww+xwwo+\nwwwwwwwowwww--------wwww+wwwwwww\nwwwwwwww+ww----------wwowwwwxwww\nxww+wwwwwww----------wwwwwww+wxw\nwowwwwwwwxw----------wwwwwwwwwx+\nw+wwww++www----------wxw+wwwwwww\nwwwwwwwwwww----------wwxxxww+www\nwwwowwwwwww----------wwwwo+www+w\nww+wxowwowww--------wwwwwwwxwwww\nwwwwwwoww+oww------xwwwwwwwwwwww\nwxwxwwoxwxwwx++ww+wwwwwwwwwowwww\nxwwwx+wwwwwowwwwwwowwwwwwwww+www\n-xwwowwwwwwwww+wwwwwwwoowxwwwww-\n--+wwwwwowwwow+wwowwwwxwwwwwx+--\n---wwwww+wxwwwwxwwwwwwwwwwwoo---\n----wwwww+wwwwwwwwwwwwwwwwww----\n-----ww+wwwwwwwww+wwww+wwww-----\n------ow+wwwwwwowwwwwwwwow------\n-------xww+wwwwwowwxwwwww-------\n--------wwwwwowww+wwxwww--------\n---------www+xwwwwwwxww---------";
+// a = "wwww\nowwo\nwwww"
+puz = new Puzzleboard();
+// puz.string_read_board(a,'wgry');
+puz.new_random_board(32,32);
+puz.random_toggle();
+puz.solve()
+seethis = math.concat( puz.truetoggle, math.transpose([puz.solution]));
+// console.log(seethis)
+// console.log(puz.string_write_board('0123'))
+// console.log(puz.rrefresult);
+// console.log(puz.state);
+// console.log(seethis);
+
+const fs = require('fs');
+fs.writeFile('C:\\Users\\ScotSh03\\Documents\\sandbox\\yellomono\\test.txt', stringifymat(puz.rrefresult), function(err) { //+'\n'+stringifymat(math.transpose(puz.truetoggle))
+    if(err) {
+        return console.log(err);
+    }
+
+    console.log("The file was saved!");
+}); 
