@@ -14,10 +14,11 @@ var buttonsolve = document.getElementById('solvebutton');
 
 //graphics context for drawing.
 var ctx = htmlCanvas.getContext('2d');
-// ctx.lineWidth = 1;
+ctx.lineWidth = 1;
 var outlinecolor = '#81726A';
 var spacecolor = '#5C6D6A'//'#50514F'; //'#5C6D6A'
 var whitecolor = '#F4E5D4';
+var textcolor = '#F4E5D4';
 // palette = 50514F
 var basepalette = ['#AFD0D6', '#E1D89F', '#C49799', '#B6C4A2', '#697593','#68575C','#EFA48F','#ABA7BC','#9E8D78'];
 // basepalette = [ '#247BA0',  '#FFE066', '#F25F5C', '#70C1B3'];
@@ -37,7 +38,7 @@ class Puzzleboardgui extends Puzzleboard {
     constructor(board = null, modulus = 4, bricksize = null) {
         super(board, modulus);
         this.bricksize = bricksize;
-        this.strokesize = 1;
+        this.strokesize = .1;
         this.origx = null;
         this.origy = null;
         this.palette = basepalette;
@@ -48,83 +49,83 @@ class Puzzleboardgui extends Puzzleboard {
 }
 
 Puzzleboardgui.prototype.paint_brick =function( row, col){
-    const c = puz.state[row][col]
-    const xat = puz.origx + col * puz.bricksize;
-    const yat = puz.origy + row * puz.bricksize;
+    const c = this.state[row][col]
+    const xat = this.origx + col * this.bricksize;
+    const yat = this.origy + row * this.bricksize;
     ctx.beginPath();
-    ctx.rect( xat, yat, puz.bricksize, puz.bricksize);
-    ctx.fillStyle = puz.palette[c];
+    ctx.rect( xat, yat, this.bricksize, this.bricksize);
+    ctx.fillStyle = this.palette[c];
     ctx.fill();
-    ctx.lineWidth = puz.strokesize;
+    ctx.lineWidth = this.strokesize;
     ctx.strokeStyle = outlinecolor;
     ctx.stroke();
 }
 
 Puzzleboardgui.prototype.paint_wall = function( row, col){
-    const xat = puz.origx + col * puz.bricksize;
-    const yat = puz.origy + row * puz.bricksize;
+    const xat = this.origx + col * this.bricksize;
+    const yat = this.origy + row * this.bricksize;
     ctx.beginPath();
-    ctx.rect( xat, yat, puz.bricksize, puz.bricksize);
+    ctx.rect( xat, yat, this.bricksize, this.bricksize);
     ctx.fillStyle = spacecolor;
     ctx.fill();
-    ctx.lineWidth = puz.strokesize;
+    ctx.lineWidth = this.strokesize;
     ctx.strokeStyle = outlinecolor;
     ctx.stroke();
 }
 
 Puzzleboardgui.prototype.paint_plus = function( row, col){
     this.paint_wall(row,col);
-    const x0 = puz.origx + col * puz.bricksize;
-    const y0 = puz.origy + row * puz.bricksize;
-    const x1 = x0 + puz.bricksize;
-    const y1 = y0 + puz.bricksize;
+    const x0 = this.origx + col * this.bricksize;
+    const y0 = this.origy + row * this.bricksize;
+    const x1 = x0 + this.bricksize;
+    const y1 = y0 + this.bricksize;
     const t = .75;
     ctx.beginPath();
     ctx.moveTo((x0 + x1) / 2, t * y0 + (1 - t) * y1);
     ctx.lineTo((x0 + x1) / 2, (1 - t) * y0 + t * y1);
     ctx.strokeStyle = whitecolor;
-    ctx.lineWidth = 2*puz.strokesize;
+    ctx.lineWidth = this.strokesize;
     ctx.stroke();
     ctx.beginPath();
     ctx.moveTo(t * x0 + (1 - t) * x1, (y0 + y1) / 2);
     ctx.lineTo((1 - t) * x0 + t * x1, (y0 + y1) / 2);
     ctx.strokeStyle = whitecolor;
-    ctx.lineWidth = 2*puz.strokesize;
+    ctx.lineWidth = this.strokesize;
     ctx.stroke();
 }
 
 Puzzleboardgui.prototype.paint_ex = function( row, col){
     this.paint_wall(row,col);
-    const x0 = puz.origx + col * puz.bricksize;
-    const y0 = puz.origy + row * puz.bricksize;
-    const x1 = x0 + puz.bricksize;
-    const y1 = y0 + puz.bricksize;
+    const x0 = this.origx + col * this.bricksize;
+    const y0 = this.origy + row * this.bricksize;
+    const x1 = x0 + this.bricksize;
+    const y1 = y0 + this.bricksize;
     const t = .75;
     ctx.beginPath();
     ctx.moveTo(t * x0 + (1 - t) * x1, t * y0 + (1 - t) * y1);
     ctx.lineTo((1 - t) * x0 + t * x1, (1 - t) * y0 + t * y1);
     ctx.strokeStyle = whitecolor;
-    ctx.lineWidth = 2*puz.strokesize;
+    ctx.lineWidth = this.strokesize;
     ctx.stroke();
     ctx.beginPath();
     ctx.moveTo(t * x0 + (1 - t) * x1, t * y1 + (1 - t) * y0);
     ctx.lineTo((1 - t) * x0 + t * x1, (1 - t) * y1 + t * y0);
     ctx.strokeStyle = whitecolor;
-    ctx.lineWidth = 2*puz.strokesize;
+    ctx.lineWidth = this.strokesize;
     ctx.stroke();
 }
 
 Puzzleboardgui.prototype.paint_oo = function( row, col){
     this.paint_wall(row,col);
-    const x0 = puz.origx + col * puz.bricksize;
-    const y0 = puz.origy + row * puz.bricksize;
-    const x1 = x0 + puz.bricksize;
-    const y1 = y0 + puz.bricksize;
+    const x0 = this.origx + col * this.bricksize;
+    const y0 = this.origy + row * this.bricksize;
+    const x1 = x0 + this.bricksize;
+    const y1 = y0 + this.bricksize;
     const t = .75;
     ctx.beginPath();
-    ctx.rect( t * x0 + (1 - t) * x1, t * y0 + (1 - t) * y1, (2*t-1)*puz.bricksize, (2*t-1)*puz.bricksize);
+    ctx.rect( t * x0 + (1 - t) * x1, t * y0 + (1 - t) * y1, (2*t-1)*this.bricksize, (2*t-1)*this.bricksize);
     ctx.strokeStyle = whitecolor;
-    ctx.lineWidth = 2*puz.strokesize;
+    ctx.lineWidth = this.strokesize;
     ctx.stroke();
 }
 
@@ -133,7 +134,7 @@ Puzzleboardgui.prototype.paint_board = function(){
     const cols = this.shape[1];
     for (var row=0; row<rows; row++){
         for(var col=0; col<cols; col++){
-            const ent = puz.board[row][col];
+            const ent = this.board[row][col];
             // palette[ent];
             if (ent =='-'){
                 this.paint_wall(row,col);
@@ -183,8 +184,8 @@ Puzzleboardgui.prototype.resize = function(canvasx, canvasy){
     ctx.fillStyle = spacecolor;
     ctx.fill();
     this.strokesize = Math.max(1,Math.floor(this.bricksize / 60));
-    const rows = puz.shape[0];
-    const cols = puz.shape[1];
+    const rows = this.shape[0];
+    const cols = this.shape[1];
     const brickx = Math.floor( htmlCanvas.width / cols);
     const bricky = Math.floor( htmlCanvas.height / rows);
     this.bricksize = Math.min( brickx, bricky);
@@ -207,16 +208,19 @@ Puzzleboardgui.prototype.solution_show = function(){
     var oy = this.origy;
     for (var foo=0; foo<sol.length; foo++){
         var bar = sol[foo];
-        var x = ox + bb*(tog[foo][1]+0.23);
-        var y = oy + bb*(tog[foo][0]+0.78);
-        ctx.fillStyle = '#241023';
-        ctx.font = (0.9*bb).toString()+'px Courier New';
+        var x = ox + bb*(tog[foo][1]+0.08);
+        var y = oy + bb*(tog[foo][0]+0.92);
+        ctx.font = (Math.floor(1.4*bb)).toString()+'px Courier New';
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = spacecolor;
+        ctx.strokeText( bar.toString() , x, y);
+        ctx.fillStyle = textcolor;
         ctx.fillText( bar.toString() , x, y);
     }
 }
 
 // aa = [[0,0,0,0,0,0],[0,0,'x',0,0,0],[0,0,0,'+',0,0],[0,0,0,0,0,'o'],[0,0,0,0,0,0]];
-aa = [[1,1,1],['x',1,'o']];
+aa = [[1,1,1,1,1,1],['x',1,'o',1,1,1,1],['o',1,1,1,'+',1,1]];
 puz = new Puzzleboardgui(aa);
 
 function initialize() {
@@ -226,8 +230,7 @@ function initialize() {
     buttonreadboard.addEventListener('click', readBoardButton, false);
     buttontoggle.addEventListener('click', toggleButtonClick, false);
     buttonsolve.addEventListener('click',solutionButtonClick,false);
-    // buttonrandomboard.addEventListener('click', function(){console.log(424242)}, false);
-    // resizeCanvas();
+    resizeCanvas();
 }
 
 function resizeCanvas() {
@@ -259,7 +262,7 @@ function readBoardButton(){
 function toggleButtonClick(){
     puz.random_toggle();
     puz.make_action_matrix();
-    puz.paint_board();
+    resizeCanvas();
 }
 
 function solutionButtonClick(){

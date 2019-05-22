@@ -1,5 +1,5 @@
 //Require math to run in node
-const math = require('mathjs')
+// const math = require('mathjs')
 
 String.prototype.format = function() {
   var formatted = this;
@@ -64,6 +64,23 @@ function rref_mod( amatrix, modulus){
     }
   }
   return aa;
+}
+
+function readrref( mat ){
+  const rows = mat.length;
+  const cols = mat[0].length;
+  var sol = math.zeros([cols-1]);
+  var row = 0;
+  var col = 0;
+  while ((row<rows)&&(col<cols)){
+    var ent = mat[row][col];
+    if (ent == 1){
+      sol[col] = mat[row][cols-1];
+      row++;
+    }
+    col++;
+  }
+  return sol;  
 }
 
 const togglesyms = ['o', '+', 'x', '-'];
@@ -206,6 +223,8 @@ class Puzzleboard {
     this.solution_warning = null;
     this.action_matrix = null;
     this.nontoggles = null;
+    //!!!!
+    this.prerref = null;
     this.rrefresult = null;
     this.truetoggle = null;
     if( this.board != null){
@@ -434,11 +453,14 @@ Puzzleboard.prototype.solve = function(){
     var nontog = this.nontoggles;
     var nontog_vec = math.reshape(nontog, [vol, 1]);
     var aa = math.concat(mat, nontog_vec, state_vec); //nontog_vec, state_vec);
+    this.prerref = aa._data;
     var bb = rref_mod(aa._data, modulus);
     //!!!!remove this rrefresult after testing
     this.rrefresult = bb;
-    var refsol = math.subset(bb, math.index(math.range(0,num_toggles), num_toggles+1));
-    var offset = bb[num_toggles][num_toggles+1];
+    refsol = readrref(bb);
+    offset = refsol.pop();
+    // var refsol = math.subset(bb, math.index(math.range(0,num_toggles), num_toggles+1));
+    // var offset = bb[num_toggles][num_toggles+1];
     if (num_toggles==1){
       refsol = [refsol];
     }
@@ -547,24 +569,41 @@ stringifymat = function(mat){
 //----------WHATS GOING WRONG-------------//
 
 // a = "---------wwwwwx+wwwwwww---------\n--------+wwxwwwwwxx+wwww--------\n-------owwwwwwwwwwwwww+ww-------\n------wwwwowwwwowxww+oo+ww------\n-----wwwwwwwwwwxo+wwwowwwww-----\n----wxwwwwww+wwwww+wwwwwwwww----\n---wxxwxwwwwwwxw+wwxwwwwowxw+---\n--+oxxwowwwwwwwwwwwowwwwwwwwww--\n-+xwwwwwwwwwwwwwwwwwwwwww+w+wwx-\n+wwwwwwwwwwww+wwwwwwwwwwwwwwwwww\nwww++owww+wwww+wwwxww+wwwwwwwwww\nwwwwwwwwwww+w------wwwwxww+xwwo+\nwwwwwwwowwww--------wwww+wwwwwww\nwwwwwwww+ww----------wwowwwwxwww\nxww+wwwwwww----------wwwwwww+wxw\nwowwwwwwwxw----------wwwwwwwwwx+\nw+wwww++www----------wxw+wwwwwww\nwwwwwwwwwww----------wwxxxww+www\nwwwowwwwwww----------wwwwo+www+w\nww+wxowwowww--------wwwwwwwxwwww\nwwwwwwoww+oww------xwwwwwwwwwwww\nwxwxwwoxwxwwx++ww+wwwwwwwwwowwww\nxwwwx+wwwwwowwwwwwowwwwwwwww+www\n-xwwowwwwwwwww+wwwwwwwoowxwwwww-\n--+wwwwwowwwow+wwowwwwxwwwwwx+--\n---wwwww+wxwwwwxwwwwwwwwwwwoo---\n----wwwww+wwwwwwwwwwwwwwwwww----\n-----ww+wwwwwwwww+wwww+wwww-----\n------ow+wwwwwwowwwwwwwwow------\n-------xww+wwwwwowwxwwwww-------\n--------wwwwwowww+wwxwww--------\n---------www+xwwwwwwxww---------";
-// a = "wwww\nowwo\nwwww"
-puz = new Puzzleboard();
+// puz = new Puzzleboard();
 // puz.string_read_board(a,'wgry');
-puz.new_random_board(32,32);
-puz.random_toggle();
-puz.solve()
-seethis = math.concat( puz.truetoggle, math.transpose([puz.solution]));
-// console.log(seethis)
-// console.log(puz.string_write_board('0123'))
-// console.log(puz.rrefresult);
-// console.log(puz.state);
-// console.log(seethis);
+// puz.random_toggle();
+// b = puz.string_write_board('wgry');
+// // seethis = math.concat( math.mod(math.multiply(-1,puz.truetoggle),7), math.transpose([puz.solution]));
+// // console.log(seethis);
 
-const fs = require('fs');
-fs.writeFile('C:\\Users\\ScotSh03\\Documents\\sandbox\\yellomono\\test.txt', stringifymat(puz.rrefresult), function(err) { //+'\n'+stringifymat(math.transpose(puz.truetoggle))
-    if(err) {
-        return console.log(err);
-    }
+// // // console.log(seethis)
+// // // console.log(puz.string_write_board('0123'))
+// // // console.log(puz.rrefresult);
+// // // console.log(puz.state);
+// // // console.log(seethis);
 
-    console.log("The file was saved!");
-}); 
+// const fs = require('fs');
+// fs.writeFile('C:\\Users\\ScotSh03\\Documents\\sandbox\\yellomono\\test0.txt', b, function(err) { //+'\n'+stringifymat(math.transpose(puz.truetoggle))
+//     if(err) {
+//         return console.log(err);
+//     }
+
+//     console.log("The file was saved!");
+// }); 
+
+// fs.writeFile('C:\\Users\\ScotSh03\\Documents\\sandbox\\yellomono\\test.txt', stringifymat(puz.rrefresult), function(err) { //+'\n'+stringifymat(math.transpose(puz.truetoggle))
+//     if(err) {
+//         return console.log(err);
+//     }
+
+//     console.log("The file was saved!");
+// }); 
+
+// // const fs = require('fs');
+// fs.writeFile('C:\\Users\\ScotSh03\\Documents\\sandbox\\yellomono\\test2.txt', stringifymat(seethis), function(err) { //+'\n'+stringifymat(math.transpose(puz.truetoggle))
+//     if(err) {
+//         return console.log(err);
+//     }
+
+//     console.log("The file was saved!");
+// }); 
