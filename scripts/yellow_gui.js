@@ -198,7 +198,7 @@ Puzzleboardgui.prototype.solution_show = function(){
     this.paint_board();
     this.solve();
     if (this.solution_warning){
-        // window.alert('Solution may not exist. Check the board.');
+        window.alert('Solution may not exist. Check the board.');
         console.log('Solution may not exit.');
     } 
     var sol = this.solution;
@@ -219,13 +219,10 @@ Puzzleboardgui.prototype.solution_show = function(){
     }
 }
 
-// aa = [[0,0,0,0,0,0],[0,0,'x',0,0,0],[0,0,0,'+',0,0],[0,0,0,0,0,'o'],[0,0,0,0,0,0]];
-// aa = [[1,1,1,1,1,1],['x',1,'o',1,1,1],['o',1,1,'+',1,1]];
 var puz = new Puzzleboardgui();
 var rows = math.floor(math.random()*8)+4;
 var cols = math.floor(math.random()*8)+4;
 var inrad = math.floor(math.random()*.4*math.min(rows,cols));
-console.log("{0} {1}".format(rows,cols));
 puz.new_random_board(rows, cols, annulus_radius = [inrad,0], solved=false, density=1/3);
 
 function initialize() {

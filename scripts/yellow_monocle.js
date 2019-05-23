@@ -46,8 +46,7 @@ function rref_mod( amatrix, modulus){
   var pivotsfound = 0;
   for(var col=0; col<col_count; col++){
     for (var r=pivotsfound; r<row_count; r++){
-      var ent = aa[r][col]
-      console.log('Line 50 gcd ent {0} and n {1}'.format(ent,n));
+      var ent = aa[r][col];
       if (gcd(ent,n)==1){
         var entinv = mod_inv(ent, n);
         var rower = math.mod( math.multiply( entinv,  aa[r] ), n).slice();
