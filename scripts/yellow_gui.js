@@ -1,4 +1,5 @@
 var htmlCanvas = document.getElementById('c');
+htmlCanvas.style.display = 'block';
 var buttonrandboard = document.getElementById('randomboardbutton');
 var inputmodulus = document.getElementById('colorsinput');
 var inputrows = document.getElementById('rowsinput');
@@ -163,7 +164,6 @@ Puzzleboardgui.prototype.toggling_repaint = function(event){
     bd = self.board
     col = Math.floor( (atx-ox) / bb );
     row = Math.floor(( aty-oy) / bb );
-    // console.log("origin: {0}, {1} clicked {2}, {3} hit {4}, {5} brick {6}".format(ox,oy,atx,aty,col,row,bb));
     inxrange = (0<=col)&&(col<=cols);
     inyrange = (0<=row)&&(row<=rows);
     if(inxrange&&inyrange){
@@ -220,8 +220,13 @@ Puzzleboardgui.prototype.solution_show = function(){
 }
 
 // aa = [[0,0,0,0,0,0],[0,0,'x',0,0,0],[0,0,0,'+',0,0],[0,0,0,0,0,'o'],[0,0,0,0,0,0]];
-aa = [[1,1,1,1,1,1],['x',1,'o',1,1,1,1],['o',1,1,1,'+',1,1]];
-puz = new Puzzleboardgui(aa);
+// aa = [[1,1,1,1,1,1],['x',1,'o',1,1,1],['o',1,1,'+',1,1]];
+var puz = new Puzzleboardgui();
+var rows = math.floor(math.random()*8)+4;
+var cols = math.floor(math.random()*8)+4;
+var inrad = math.floor(math.random()*.4*math.min(rows,cols));
+console.log("{0} {1}".format(rows,cols));
+puz.new_random_board(rows, cols, annulus_radius = [inrad,0], solved=false, density=1/3);
 
 function initialize() {
     window.addEventListener('resize', resizeCanvas, false);
@@ -233,8 +238,27 @@ function initialize() {
     resizeCanvas();
 }
 
+function getScrollbarWidth() {
+    var outer = document.createElement("div");
+    outer.style.visibility = "hidden";
+    outer.style.width = "100px";
+    outer.style.msOverflowStyle = "scrollbar"; // needed for WinJS apps
+    document.body.appendChild(outer);
+    var widthNoScroll = outer.offsetWidth;
+    // force scrollbars
+    outer.style.overflow = "scroll";
+    // add innerdiv
+    var inner = document.createElement("div");
+    inner.style.width = "100%";
+    outer.appendChild(inner);        
+    var widthWithScroll = inner.offsetWidth;
+    // remove divs
+    outer.parentNode.removeChild(outer);
+    return widthNoScroll - widthWithScroll;
+}
+
 function resizeCanvas() {
-    htmlCanvas.width = window.innerWidth;
+    htmlCanvas.width = window.innerWidth - getScrollbarWidth();
     htmlCanvas.height = window.innerHeight;
     puz.resize(htmlCanvas.width, htmlCanvas.height);
     puz.paint_board();

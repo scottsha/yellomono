@@ -47,6 +47,7 @@ function rref_mod( amatrix, modulus){
   for(var col=0; col<col_count; col++){
     for (var r=pivotsfound; r<row_count; r++){
       var ent = aa[r][col]
+      console.log('Line 50 gcd ent {0} and n {1}'.format(ent,n));
       if (gcd(ent,n)==1){
         var entinv = mod_inv(ent, n);
         var rower = math.mod( math.multiply( entinv,  aa[r] ), n).slice();
@@ -97,9 +98,7 @@ function action_generators( board ){
   const rows = board.length;
   const cols = board[0].length;
   const vol = rows * cols;
-  // toggle_entries = [];
   var toggle_actions = [];
-  // toggle_counter = 0;
   for(var row=0; row<rows; row++){
     for(var col=0;col<cols;col++){
       var ent = board[row][col];
@@ -223,10 +222,6 @@ class Puzzleboard {
     this.solution_warning = null;
     this.action_matrix = null;
     this.nontoggles = null;
-    //!!!!
-    this.prerref = null;
-    this.rrefresult = null;
-    this.truetoggle = null;
     if( this.board != null){
       this.read_board();
       this.make_action_matrix();
@@ -341,7 +336,6 @@ Puzzleboard.prototype.make_action_matrix = function(){
     mat.subset( math.index(math.range(0,volume), tognum), b);
     tognum++;
   });
-  // console.log(mat)
   this.action_matrix = mat;
 }
 
@@ -376,8 +370,6 @@ Puzzleboard.prototype.random_toggle = function(offset = -1){
   bd = this.board;
   const num_toggles = actgen._size[1];
   const randsol = math.floor( math.multiply(math.random([num_toggles, 1]),modulus) );
-  //!!!! remove this truetoggle
-  this.truetoggle = randsol;
   var state = math.mod( math.multiply(actgen, randsol), modulus).reshape([rows, cols]);
   if(offset == -1){
     offset = math.floor(math.random()*modulus);
@@ -448,19 +440,13 @@ Puzzleboard.prototype.solve = function(){
     var modulus = this.modulus;
     var num_toggles = this.toggles.length;
     var state = this.state;
-    // var state_offset = math.mod(math.subtract(state, offset), modulus);
     var state_vec = math.reshape(state, [vol, 1]);
     var nontog = this.nontoggles;
     var nontog_vec = math.reshape(nontog, [vol, 1]);
-    var aa = math.concat(mat, nontog_vec, state_vec); //nontog_vec, state_vec);
-    this.prerref = aa._data;
+    var aa = math.concat(mat, nontog_vec, state_vec);
     var bb = rref_mod(aa._data, modulus);
-    //!!!!remove this rrefresult after testing
-    this.rrefresult = bb;
     refsol = readrref(bb);
     offset = refsol.pop();
-    // var refsol = math.subset(bb, math.index(math.range(0,num_toggles), num_toggles+1));
-    // var offset = bb[num_toggles][num_toggles+1];
     if (num_toggles==1){
       refsol = [refsol];
     }
@@ -468,9 +454,7 @@ Puzzleboard.prototype.solve = function(){
     this.solution = math.reshape(sol, [sol.length]);
     //This rest of this nonsense is just double checking. Could just check rref...
     var act = math.reshape(math.multiply(mat,sol),[vol,1]);
-    // var statewas = offset * nontog_vec;
     var residue = math.mod( math.add(act, state_vec), modulus);
-    //!!!!
     var shouldsee = math.multiply(offset, nontog_vec);
     var errin = getMax(math.abs(math.subtract(residue, shouldsee))._data);
     if(errin>0){
@@ -567,11 +551,17 @@ stringifymat = function(mat){
 
 
 //----------WHATS GOING WRONG-------------//
+// // a = "---------wwwwwx+wwwwwww---------\n--------+wwxwwwwwxx+wwww--------\n-------owwwwwwwwwwwwww+ww-------\n------wwwwowwwwowxww+oo+ww------\n-----wwwwwwwwwwxo+wwwowwwww-----\n----wxwwwwww+wwwww+wwwwwwwww----\n---wxxwxwwwwwwxw+wwxwwwwowxw+---\n--+oxxwowwwwwwwwwwwowwwwwwwwww--\n-+xwwwwwwwwwwwwwwwwwwwwww+w+wwx-\n+wwwwwwwwwwww+wwwwwwwwwwwwwwwwww\nwww++owww+wwww+wwwxww+wwwwwwwwww\nwwwwwwwwwww+w------wwwwxww+xwwo+\nwwwwwwwowwww--------wwww+wwwwwww\nwwwwwwww+ww----------wwowwwwxwww\nxww+wwwwwww----------wwwwwww+wxw\nwowwwwwwwxw----------wwwwwwwwwx+\nw+wwww++www----------wxw+wwwwwww\nwwwwwwwwwww----------wwxxxww+www\nwwwowwwwwww----------wwwwo+www+w\nww+wxowwowww--------wwwwwwwxwwww\nwwwwwwoww+oww------xwwwwwwwwwwww\nwxwxwwoxwxwwx++ww+wwwwwwwwwowwww\nxwwwx+wwwwwowwwwwwowwwwwwwww+www\n-xwwowwwwwwwww+wwwwwwwoowxwwwww-\n--+wwwwwowwwow+wwowwwwxwwwwwx+--\n---wwwww+wxwwwwxwwwwwwwwwwwoo---\n----wwwww+wwwwwwwwwwwwwwwwww----\n-----ww+wwwwwwwww+wwww+wwww-----\n------ow+wwwwwwowwwwwwwwow------\n-------xww+wwwwwowwxwwwww-------\n--------wwwwwowww+wwxwww--------\n---------www+xwwwwwwxww---------";
 
-// a = "---------wwwwwx+wwwwwww---------\n--------+wwxwwwwwxx+wwww--------\n-------owwwwwwwwwwwwww+ww-------\n------wwwwowwwwowxww+oo+ww------\n-----wwwwwwwwwwxo+wwwowwwww-----\n----wxwwwwww+wwwww+wwwwwwwww----\n---wxxwxwwwwwwxw+wwxwwwwowxw+---\n--+oxxwowwwwwwwwwwwowwwwwwwwww--\n-+xwwwwwwwwwwwwwwwwwwwwww+w+wwx-\n+wwwwwwwwwwww+wwwwwwwwwwwwwwwwww\nwww++owww+wwww+wwwxww+wwwwwwwwww\nwwwwwwwwwww+w------wwwwxww+xwwo+\nwwwwwwwowwww--------wwww+wwwwwww\nwwwwwwww+ww----------wwowwwwxwww\nxww+wwwwwww----------wwwwwww+wxw\nwowwwwwwwxw----------wwwwwwwwwx+\nw+wwww++www----------wxw+wwwwwww\nwwwwwwwwwww----------wwxxxww+www\nwwwowwwwwww----------wwwwo+www+w\nww+wxowwowww--------wwwwwwwxwwww\nwwwwwwoww+oww------xwwwwwwwwwwww\nwxwxwwoxwxwwx++ww+wwwwwwwwwowwww\nxwwwx+wwwwwowwwwwwowwwwwwwww+www\n-xwwowwwwwwwww+wwwwwwwoowxwwwww-\n--+wwwwwowwwow+wwowwwwxwwwwwx+--\n---wwwww+wxwwwwxwwwwwwwwwwwoo---\n----wwwww+wwwwwwwwwwwwwwwwww----\n-----ww+wwwwwwwww+wwww+wwww-----\n------ow+wwwwwwowwwwwwwwow------\n-------xww+wwwwwowwxwwwww-------\n--------wwwwwowww+wwxwww--------\n---------www+xwwwwwwxww---------";
+// a = "yrrrry\nxgorry\nobgg+r"
 // puz = new Puzzleboard();
-// puz.string_read_board(a,'wgry');
+// puz.string_read_board(a,'byrg');
+// puz.solve();
+// console.log(puz.solution);
 // puz.random_toggle();
+
+
+
 // b = puz.string_write_board('wgry');
 // // seethis = math.concat( math.mod(math.multiply(-1,puz.truetoggle),7), math.transpose([puz.solution]));
 // // console.log(seethis);
