@@ -20,9 +20,8 @@ var outlinecolor = '#81726A';
 var spacecolor = '#5C6D6A'//'#50514F'; //'#5C6D6A'
 var whitecolor = '#F4E5D4';
 var textcolor = '#F4E5D4';
-// palette = 50514F
-var basepalette = ['#AFD0D6', '#E1D89F', '#C49799', '#B6C4A2', '#697593','#68575C','#EFA48F','#ABA7BC','#9E8D78'];
-// basepalette = [ '#247BA0',  '#FFE066', '#F25F5C', '#70C1B3'];
+var basepalette = ['#AFD0D6', '#E1D89F', '#C49799', '#B6C4A2', '#697593'];
+// var basepalette = ['hsl(10, 80%, 10%)', 'hsl(10, 80%, 30%)', 'hsl(10, 80%, 40%)', 'hsl(10, 80%, 80%)'];
 
 
 function getRandomColor() {
@@ -42,11 +41,35 @@ class Puzzleboardgui extends Puzzleboard {
         this.strokesize = .1;
         this.origx = null;
         this.origy = null;
-        this.palette = basepalette;
-        while( this.palette.length < modulus){
-            this.palette.push(getRandomColor());
-        }
+        this.palette_picker();
     }
+}
+
+Puzzleboardgui.prototype.palette_picker = function(){
+    modulus = this.modulus;
+    if (modulus<6){
+        this.palette = basepalette;
+    } else {
+        var paly = [];
+        var cnt = 0;
+        var h1 = Math.floor(360*Math.random());
+        var s1 = 30*Math.random();
+        var l1 = 20*Math.random();
+        while (paly.length < modulus){
+            var h0 = (h1+360*cnt / modulus)%360;
+            var s0 = 70+Math.floor(s1*Math.cos(2*Math.PI*cnt / modulus));            
+            var l0 = 50+Math.floor(l1*Math.cos(2*Math.PI*cnt / modulus));
+            paly.push("hsl({0},{1}%,{2}%)".format(h0,s0,l0));
+            cnt++;
+        }
+        this.palette = paly;
+    }
+    // var paly = basepalette.slice();
+    // while( paly.length < modulus){
+    //     paly.push(getRandomColor());
+    // }
+    // console.log(paly);
+    // this.palette = basepalette;
 }
 
 Puzzleboardgui.prototype.paint_brick =function( row, col){
@@ -210,7 +233,11 @@ Puzzleboardgui.prototype.solution_show = function(){
         var bar = sol[foo];
         var x = ox + bb*(tog[foo][1]+0.08);
         var y = oy + bb*(tog[foo][0]+0.92);
-        ctx.font = (Math.floor(1.4*bb)).toString()+'px Courier New';
+        var fontsize = math.floor(1.4*bb);
+        if (bar>9){
+            fontsize = math.floor(.7*bb);
+        }
+        ctx.font = fontsize.toString() +'px Courier New';
         ctx.lineWidth = 3;
         ctx.strokeStyle = spacecolor;
         ctx.strokeText( bar.toString() , x, y);
@@ -223,7 +250,8 @@ var puz = new Puzzleboardgui();
 var rows = math.floor(math.random()*8)+4;
 var cols = math.floor(math.random()*8)+4;
 var inrad = math.floor(math.random()*.4*math.min(rows,cols));
-puz.new_random_board(rows, cols, annulus_radius = [inrad,0], solved=false, density=1/3);
+var ranmod = math.floor(math.random()* 1.5) + 4;
+puz.new_random_board(rows, cols, annulus_radius = [inrad,0], solved=false, density=1/3, offset=-1, modulus=ranmod);
 
 function initialize() {
     window.addEventListener('resize', resizeCanvas, false);
@@ -270,6 +298,7 @@ function randomBoardClick() {
     offset = -1,
     modulus = parseInt(inputmodulus.value,10)
   );
+  puz.palette_picker();
   resizeCanvas();
 }
 
@@ -277,6 +306,7 @@ function readBoardButton(){
     var rawboardstr = inputboard.value;
     var colororderstr = inputcolororder.value;
     puz.string_read_board(rawboardstr, colororderstr);
+    puz.palette_picker();
     resizeCanvas();
 }
 

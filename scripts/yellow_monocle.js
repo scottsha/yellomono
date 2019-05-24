@@ -233,12 +233,6 @@ Puzzleboard.prototype.read_board = function( symbol_order = null){
   this.solution_warning = null;
   this.action_matrix = null;
   if(symbol_order!=null){
-    // console.log('TODO')
-    // aa = [(symbol_order[foo], foo) for foo in range(len(symbol_order))]\
-    // + [(foo,foo) for foo in specials]
-    // symbol_dict = dict(aa)
-    // symbol_changer = np.vectorize(lambda x: symbol_dict[x])
-    // board = symbol_changer(self.board)
   } else {
     board = this.board;
   }
@@ -354,6 +348,7 @@ Puzzleboard.prototype.toggle_act = function(row, col, effects=null){
 Puzzleboard.prototype.new_random_board = function( x_dim, y_dim, annulus_radius = [0,0], solved=false, density=1/7, offset=-1, modulus=4 ){
   bd = random_board(x_dim, y_dim, annulus_radius, solved, density, offset, modulus);
   this.board = bd;
+  this.modulus = modulus;
   this.read_board();
 }
 
@@ -552,9 +547,20 @@ stringifymat = function(mat){
 //----------WHATS GOING WRONG-------------//
 // // a = "---------wwwwwx+wwwwwww---------\n--------+wwxwwwwwxx+wwww--------\n-------owwwwwwwwwwwwww+ww-------\n------wwwwowwwwowxww+oo+ww------\n-----wwwwwwwwwwxo+wwwowwwww-----\n----wxwwwwww+wwwww+wwwwwwwww----\n---wxxwxwwwwwwxw+wwxwwwwowxw+---\n--+oxxwowwwwwwwwwwwowwwwwwwwww--\n-+xwwwwwwwwwwwwwwwwwwwwww+w+wwx-\n+wwwwwwwwwwww+wwwwwwwwwwwwwwwwww\nwww++owww+wwww+wwwxww+wwwwwwwwww\nwwwwwwwwwww+w------wwwwxww+xwwo+\nwwwwwwwowwww--------wwww+wwwwwww\nwwwwwwww+ww----------wwowwwwxwww\nxww+wwwwwww----------wwwwwww+wxw\nwowwwwwwwxw----------wwwwwwwwwx+\nw+wwww++www----------wxw+wwwwwww\nwwwwwwwwwww----------wwxxxww+www\nwwwowwwwwww----------wwwwo+www+w\nww+wxowwowww--------wwwwwwwxwwww\nwwwwwwoww+oww------xwwwwwwwwwwww\nwxwxwwoxwxwwx++ww+wwwwwwwwwowwww\nxwwwx+wwwwwowwwwwwowwwwwwwww+www\n-xwwowwwwwwwww+wwwwwwwoowxwwwww-\n--+wwwwwowwwow+wwowwwwxwwwwwx+--\n---wwwww+wxwwwwxwwwwwwwwwwwoo---\n----wwwww+wwwwwwwwwwwwwwwwww----\n-----ww+wwwwwwwww+wwww+wwww-----\n------ow+wwwwwwowwwwwwwwow------\n-------xww+wwwwwowwxwwwww-------\n--------wwwwwowww+wwxwww--------\n---------www+xwwwwwwxww---------";
 
-// a = "yrrrry\nxgorry\nobgg+r"
+// // // a = "yrrrry\nxgorry\nobgg+r\nowwg+r"
 // puz = new Puzzleboard();
-// puz.string_read_board(a,'byrg');
+// // // puz.string_read_board(a,'byrgw');
+// puz.new_random_board(18,20,[0,12],false,.15,-1,13);
+// console.log( puz.modulus );
+// console.log( puz.volume );
+// console.log( puz.shape );
+// puz.make_action_matrix();
+// // console.log( puz.action_matrix );
+// puz.random_toggle();
+// puz.solve();
+// console.log(puz.solution);
+
+// math.reshape(math.multiply(mat,sol),[vol,1])
 // puz.solve();
 // console.log(puz.solution);
 // puz.random_toggle();
