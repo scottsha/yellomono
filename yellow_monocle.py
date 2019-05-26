@@ -86,6 +86,21 @@ def rref_mod(matrix, modulus):
     return aa
 
 
+def rref_read( mat ):
+    rows = mat.shape[0]
+    cols = mat.shape[1]
+    sol = np.zeros([cols-1])
+    row = 0
+    col = 0
+    while ((row<rows) and (col<cols)):
+        ent = mat[row][col]
+        if ent == 1:
+            sol[col] = mat[row][cols-1]
+            row+=1
+        col+=1
+    return sol 
+
+
 class PuzzleBoard:
     """
     This is a yellow monocle puzzle board!
@@ -234,6 +249,7 @@ class PuzzleBoard:
         if not solved:
             self.random_act()
 
+
     def random_act(self, verbose=False):
         try:
             mat = self.action_matrix
@@ -245,6 +261,7 @@ class PuzzleBoard:
             print('Toggling', self.toggles, ' with ', act_times)
         act_was = (mat @ act_times).reshape(self.shape)
         self.state = (self.state + act_was) % self.modulus
+
 
     def offset(self):
         try:
@@ -273,6 +290,7 @@ class PuzzleBoard:
             offset = unshake_val * offset
             return offset
 
+
     def solve(self):
         if self.board is None:
             warnings.warn('The board is null.')
@@ -284,35 +302,57 @@ class PuzzleBoard:
             nontog = self.nontoggles.reshape((mat.shape[0], 1))
             aa = np.hstack([mat, nontog, state_v])
             bb = rref_mod(aa, self.modulus)
-            self.solution = (-bb[0:mat.shape[1], -1]) % self.modulus
-            offset = bb[mat.shape[1], -1]
-            print('offset', offset)
+            refsol = rref_read(bb)
+            offset = refsol[-1]
+            refsol = refsol[:-1].astype(int)
+            self.solution = (-refsol) % self.modulus
             residue = (self.state.reshape(mat.shape[0]) + mat @ self.solution) % self.modulus
-            # if not (residue.reshape(self.shape) == offset).all():
-            #     warnings.warn("Unsolved. Solution may not exist. Check board. Solution is only a simplification.",
-            #                   RuntimeWarning)
+            if not (residue == offset * nontog.reshape(mat.shape[0])).all():
+                warnings.warn("Unsolved. Solution may not exist. Check board. Solution is only a simplification.",
+                              RuntimeWarning)
+
 
     def print_instructions(self):
         print('To solve the puzzle:')
         for at, act in zip(self.toggles, self.solution):
             print('Toggle '+self.board[at[0],at[1]]+' at '+str(at)+' do '+str(act))
 
+
+    def string_read_board(self, board_string, symbol_order):
+        if ',' in board_string:
+            sym = dict([(bar,foo) for foo,bar in enumerate(symbol_order.split(','))])
+            sym.update([(foo,foo) for foo in specials])
+            bd = [[sym[bar] for bar in foo.split(',')] for foo in board_string.split('\n')]
+        else:
+            sym = dict([(bar,foo) for foo,bar in enumerate(symbol_order)]) 
+            sym.update([(foo,foo) for foo in specials])
+            bd = [[sym[bar] for bar in foo] for foo in board_string.split('\n')]
+        self.board = np.array(bd)
+        self.read_board()
+        self.make_action_matrix()
+
+
 if __name__ == "__main__":
+    puz = PuzzleBoard()
+    puz.string_read_board("ww+\nbbo","wbry")
+    print(puz.board)
+    puz.solve()
+    puz.print_instructions()
     # lil = np.array([['2', 'o', '2', '2', '2'],
     #                 ['2', '2', '2', '2', '2'],
     #                 ['2', '2', '2', '2', 'o'],
     #                 ['2', 'x', '2', '2', 'x'],
     #                 ['2', '2', '2', '2', '2']])
-    # puz = PuzzleBoard(board=lil)
-    puz = PuzzleBoard()
-    puz.make_random_board(7,7,offset=np.random.randint(4))
-    puz.random_act(verbose=True)
-    # print(puz.board)
-    print(puz.board)
-    print('State of the board:')
-    print(puz.state)
-    print()
-    puz.solve()
-    print('Solution')
-    print(puz.solution)
-    puz.print_instructions()
+    # # puz = PuzzleBoard(board=lil)
+    # puz = PuzzleBoard()
+    # puz.make_random_board(7,7,offset=np.random.randint(4))
+    # # puz.random_act(verbose=True)
+    # # # print(puz.board)
+    # # print(puz.board)
+    # # print('State of the board:')
+    # # print(puz.state)
+    # # print()
+    # puz.solve()
+    # print('Solution')
+    # print(puz.solution)
+    # puz.print_instructions()

@@ -103,7 +103,6 @@ class PuzzleBoardGui:
         x, y = event.x, event.y
         xmost = self.puzzle.shape[0]
         ymost = self.puzzle.shape[1]
-        print(x, y)
         if 0 <= x and x <= xmost * bb and 0 <= y and y <= ymost * bb:
             matx = int(np.floor(x / bb))
             maty = int(np.floor(y / bb))
@@ -137,5 +136,7 @@ if __name__ == "__main__":
                     ['2', '2', '2', '2', '2']])
     a = PuzzleBoardGui(canvas_approx_size=700)
     # a.puzzle.make_random_board(24,24,annulus_radius=(2,12))
-    a.puzzle.make_random_board(25,25,annulus_radius=(2,13),offset=np.random.randint(4))
+    a.puzzle.make_random_board(5, 6, annulus_radius=(0,0), offset=np.random.randint(4))
+    a.puzzle.solve()
+    a.puzzle.print_instructions()
     a.run()
