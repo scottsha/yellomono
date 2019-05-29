@@ -1,5 +1,3 @@
-# from typing import Any, Tuple, Union
-
 import numpy as np
 import warnings
 # import tkinter as tk
