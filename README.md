@@ -13,5 +13,5 @@ Example usage can be found at the bottom.
 For inline JavaScript see:
 scripts/yellow_monocle.js
 
-which can be run with node after uncommenting
+Running with node requires math.js and can be run with node after uncommenting
 // const math = require('mathjs')
