@@ -1,9 +1,9 @@
 # The Yellow Pince-nez
 
-The Yellow Pince-nez is the sequel to the [Yellow Monocle Puzzle](https://www.wowhead.com/guides/the-hivemind "Yellow Monocle Puzzle"), which may be found in the [Halls of origination](https://www.wowhead.com/halls-of-origination).
+The Yellow Pince-nez is the sequel to the [Yellow Monocle Puzzle](https://www.wowhead.com/guides/the-hivemind "Yellow Monocle Puzzle"), which may be found in the [Halls of Origination](https://www.wowhead.com/halls-of-origination).
 
 The goal of the puzzle is to eliminate all but one color, and may be solved using linear algebra with a finite abelian group.
-A web interface can be found [here](http://scottsha.com/yellow_gui.html)
+A web interface can be found [here](http://scottsha.com/yellow_gui.html).
 
 For inline python see:
 yellow_monocle.py
